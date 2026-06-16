@@ -115,6 +115,7 @@ const state = {
   gradientWrapMode: 'loop',
   paletteId: 'spectral',
   paletteOffset: 0,
+  paletteCycleDirection: 1,
   cycleSeconds: 12,
   paletteRunning: true,
 };
@@ -253,6 +254,7 @@ function wireControls() {
   });
   controls.gradientWrapMode.addEventListener('change', () => {
     state.gradientWrapMode = controls.gradientWrapMode.value;
+    syncPaletteCycleDirection();
     requestRender();
   });
   controls.toggleTime.addEventListener('click', () => {
@@ -286,6 +288,7 @@ function wireControls() {
   });
   controls.paletteOffset.addEventListener('input', () => {
     state.paletteOffset = wrapRange(Number(controls.paletteOffset.value));
+    syncPaletteCycleDirection();
     requestRender();
   });
   controls.toggleAnimation.addEventListener('click', () => {
@@ -346,6 +349,7 @@ function setValueBits(bits) {
     }
   }
   state.paletteOffset = wrapRange(state.paletteOffset);
+  syncPaletteCycleDirection();
   controls.valueBits.value = String(state.valueBits);
   controls.paletteOffset.max = String(state.valueMask);
   controls.paletteOffset.value = Math.floor(state.paletteOffset);
@@ -553,7 +557,7 @@ function tick(now) {
   }
 
   if (state.paletteRunning && state.cycleSeconds > 0) {
-    state.paletteOffset = wrapRange(state.paletteOffset + dt * state.valueRange / state.cycleSeconds);
+    advancePaletteCycle(dt);
     controls.paletteOffset.value = Math.floor(state.paletteOffset);
     needsStaticRender = true;
     animated = true;
@@ -565,6 +569,38 @@ function tick(now) {
 
 function hasGradientAnimation() {
   return state.gradients.some((g) => g.offsetSpeed || g.rotationSpeed || g.originSpeedX || g.originSpeedY || g.phaseSpeed || g.driftX || g.driftY);
+}
+
+function advancePaletteCycle(dt) {
+  if (state.gradientWrapMode !== 'pingpong') {
+    state.paletteOffset = wrapRange(state.paletteOffset + dt * state.valueRange / state.cycleSeconds);
+    return;
+  }
+
+  const max = state.valueMask;
+  if (max <= 0) {
+    state.paletteOffset = 0;
+    state.paletteCycleDirection = 1;
+    return;
+  }
+
+  let next = state.paletteOffset + state.paletteCycleDirection * dt * (max * 2) / state.cycleSeconds;
+  while (next < 0 || next > max) {
+    if (next > max) {
+      next = max - (next - max);
+      state.paletteCycleDirection = -1;
+    } else {
+      next = -next;
+      state.paletteCycleDirection = 1;
+    }
+  }
+  state.paletteOffset = next;
+}
+
+function syncPaletteCycleDirection() {
+  if (state.gradientWrapMode !== 'pingpong') return;
+  if (state.paletteOffset <= 0) state.paletteCycleDirection = 1;
+  else if (state.paletteOffset >= state.valueMask) state.paletteCycleDirection = -1;
 }
 
 function requestRender() {
