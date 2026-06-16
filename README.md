@@ -2,6 +2,8 @@
 
 A WebGL playground for combining integer gradient fields with binary operations and LUT colorization.
 
+Live site: https://abhuva.github.io/binary-gradients/
+
 The core effect is deliberately simple:
 
 ```text
