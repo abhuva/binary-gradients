@@ -114,19 +114,6 @@
         <button id="applyLutLength" type="button">Apply Length</button>
       </section>
 
-      <section class="control-group lut-editor-group">
-        <h2>Editor</h2>
-        <div class="lut-wrap">
-          <canvas id="lutCanvas" width="512" height="74"></canvas>
-          <div id="lutMarkers" class="lut-markers" aria-label="LUT points"></div>
-        </div>
-        <p class="hint">Click the bar to add a smooth point. Drag markers to move them. Click a marker to edit it.</p>
-        <div class="actions">
-          <button id="addSmoothPoint" type="button">Add Smooth</button>
-          <button id="addHardPoint" type="button">Add Hard</button>
-        </div>
-      </section>
-
       <section class="control-group point-editor" id="pointEditor">
         <h2>Selected Point</h2>
         <label>
@@ -158,6 +145,20 @@
     <div class="viewport" id="viewport">
       <canvas id="canvas"></canvas>
     </div>
+    <section class="lut-dock" id="lutDock" aria-label="LUT editor">
+      <div class="lut-dock-head">
+        <h2>LUT Editor</h2>
+        <p class="hint">Click the bar to add a smooth point. Drag markers to move them. Click a marker to edit it.</p>
+        <div class="actions">
+          <button id="addSmoothPoint" type="button">Add Smooth</button>
+          <button id="addHardPoint" type="button">Add Hard</button>
+        </div>
+      </div>
+      <div class="lut-wrap">
+        <canvas id="lutCanvas" width="512" height="74"></canvas>
+        <div id="lutMarkers" class="lut-markers" aria-label="LUT points"></div>
+      </div>
+    </section>
     <div class="readout" id="readout"></div>
   </main>
 

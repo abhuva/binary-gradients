@@ -312,8 +312,10 @@ function wireControls() {
 function setTab(tabName) {
   controls.tabButtons.forEach((button) => button.classList.toggle('active', button.dataset.tab === tabName));
   controls.tabPanels.forEach((panel) => panel.classList.toggle('active', panel.id === `${tabName}Tab`));
+  document.body.classList.toggle('lut-dock-active', tabName === 'lut');
   if (tabName === 'lut') requestAnimationFrame(renderLutEditor);
   state.previewMode = tabName === 'grad1' ? 'grad1' : tabName === 'grad2' ? 'grad2' : 'final';
+  resetView();
   requestRender();
 }
 
