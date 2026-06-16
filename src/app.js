@@ -528,6 +528,7 @@ function tick(now) {
   if (state.paletteRunning && state.cycleSeconds > 0) {
     state.paletteOffset = wrapRange(state.paletteOffset + dt * state.valueRange / state.cycleSeconds);
     controls.paletteOffset.value = Math.floor(state.paletteOffset);
+    needsStaticRender = true;
     animated = true;
   }
 
@@ -1164,7 +1165,7 @@ function applyCurrentLutToRenderer() {
 function updateRendererFromCurrentLut() {
   palette = buildLut(currentLut);
   uploadLutTexture();
-  requestRender();
+  renderFrame();
 }
 
 function saveLutJson() {
