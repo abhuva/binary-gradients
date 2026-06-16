@@ -1302,7 +1302,7 @@ function clamp(value, min, max) {
 }
 
 function wrapRange(value) {
-  return ((Math.floor(value) % state.valueRange) + state.valueRange) % state.valueRange;
+  return ((Number(value) % state.valueRange) + state.valueRange) % state.valueRange;
 }
 
 function clampByte(value) {
