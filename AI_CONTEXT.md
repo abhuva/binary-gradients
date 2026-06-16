@@ -196,6 +196,26 @@ hard   -> exact point override
 
 The LUT editor is shown as a wide bottom dock in the render stage when the LUT tab is active. The main render remains visible above it.
 
+The LUT side panel includes first-slice automatic generators:
+
+- `Harmony`: color-theory stop sets using complementary/analogous/triadic-style hue offsets.
+- `HSV Waves`: sine-wave hue/saturation/value stop paths.
+- `Bit Pattern`: integer/bit-inspired stop colors based on popcount and low/high nibble variation.
+- `Random Walk`: seeded color-space drift.
+- `Physical Preset`: curated fire/ice/thermal/topo/ocean/oil/toxic/sunset/CRT/VGA families with seeded variation.
+- `Seamless Cycle`: first/last color matched for smoother palette cycling.
+- `Mirror / Symmetry`: exact, inverted, complementary, or brightness-mirrored palettes.
+- `Bitplane`: high-bit, low-bit, popcount, or power-of-two color emphasis.
+- `Bands / Posterize`: duplicated stops for hard-edged bands.
+- `Scientific Diverging`: readable diverging palettes.
+- `Luminance Controlled`: monotonic brightness with hue variation.
+- `Color Ramp`: three explicit color stops.
+- `Chaos Map`: logistic-map color paths.
+- `Fourier Waves`: multi-harmonic color waves.
+- `Ease Curve`: linear/smooth/exponential/log/pulse/stepped ramps.
+
+Generator controls are intentionally compact: generator type, seed, base hue, detail, contrast, generate, and random seed. Generator-specific controls render dynamically below the common controls and regenerate live when changed. Base hue, detail, and contrast also regenerate live; seed only changes through `Generate` or `Random Seed`. Generators replace the current LUT with editable points and use the existing `buildLut()` path. They do not create hidden raw LUT textures.
+
 LUT edits update the renderer in realtime when:
 
 - dragging a marker

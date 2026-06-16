@@ -118,6 +118,54 @@
         <button id="applyLutLength" type="button">Apply Length</button>
       </section>
 
+      <section class="control-group">
+        <h2>Generate LUT</h2>
+        <label>
+          Generator
+          <select id="lutGenerator">
+            <option value="harmony">Harmony</option>
+            <option value="waves">HSV Waves</option>
+            <option value="bit">Bit Pattern</option>
+            <option value="walk">Random Walk</option>
+            <option value="physical">Physical Preset</option>
+            <option value="seamless">Seamless Cycle</option>
+            <option value="mirror">Mirror / Symmetry</option>
+            <option value="bitplane">Bitplane</option>
+            <option value="bands">Bands / Posterize</option>
+            <option value="scientific">Scientific Diverging</option>
+            <option value="luminance">Luminance Controlled</option>
+            <option value="colorRamp">Color Ramp</option>
+            <option value="chaos">Chaos Map</option>
+            <option value="fourier">Fourier Waves</option>
+            <option value="ease">Ease Curve</option>
+          </select>
+        </label>
+        <label>
+          Seed
+          <input id="lutSeed" type="number" min="0" max="999999" step="1" value="1337">
+        </label>
+        <label class="generator-control">
+          <span>Base Hue</span>
+          <input id="lutBaseHue" type="range" min="0" max="359" step="1" value="205">
+          <output id="lutBaseHueOut"></output>
+        </label>
+        <label class="generator-control">
+          <span>Detail</span>
+          <input id="lutDetail" type="range" min="2" max="32" step="1" value="8">
+          <output id="lutDetailOut"></output>
+        </label>
+        <label class="generator-control">
+          <span>Contrast</span>
+          <input id="lutContrast" type="range" min="0" max="100" step="1" value="70">
+          <output id="lutContrastOut"></output>
+        </label>
+        <div id="lutGeneratorParams"></div>
+        <div class="actions">
+          <button id="generateLut" type="button">Generate</button>
+          <button id="randomizeLutSeed" type="button">Random Seed</button>
+        </div>
+      </section>
+
       <section class="control-group point-editor" id="pointEditor">
         <h2>Selected Point</h2>
         <label>
