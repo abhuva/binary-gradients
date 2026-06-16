@@ -1086,6 +1086,7 @@ function onLutMarkerPointerMove(event) {
   const point = findPoint(lutDrag.pointId);
   if (!point) return;
   point.index = lutIndexFromClientX(event.clientX);
+  updateRendererFromCurrentLut();
   renderLutEditor();
 }
 
@@ -1114,6 +1115,7 @@ function addLutPoint(kind, index = Math.floor((currentLut.length - 1) / 2)) {
   };
   currentLut.points.push(point);
   selectedPointId = point.id;
+  updateRendererFromCurrentLut();
   renderLutEditor();
 }
 
@@ -1123,6 +1125,7 @@ function updateSelectedPointFromControls() {
   point.index = clampNumber(controls.pointIndex.value, 0, currentLut.length - 1);
   point.color = normalizeHex(controls.pointColor.value);
   point.kind = controls.pointKind.value === 'hard' ? 'hard' : 'smooth';
+  updateRendererFromCurrentLut();
   renderLutEditor();
 }
 
@@ -1133,6 +1136,7 @@ function deleteSelectedPoint() {
   if (point.kind === 'smooth' && smoothCount <= 2) return;
   currentLut.points = currentLut.points.filter((item) => item.id !== selectedPointId);
   selectedPointId = currentLut.points[0]?.id ?? null;
+  updateRendererFromCurrentLut();
   renderLutEditor();
 }
 
@@ -1145,6 +1149,7 @@ function applyLutLength() {
   });
   currentLut.length = nextLength;
   controls.pointIndex.max = String(nextLength - 1);
+  updateRendererFromCurrentLut();
   renderLutEditor();
 }
 
@@ -1152,9 +1157,13 @@ function applyCurrentLutToRenderer() {
   currentLut.id = sanitizeLutId(controls.lutId.value);
   lutLibrary[currentLut.id] = cloneLut(currentLut);
   state.paletteId = currentLut.id;
+  updateRendererFromCurrentLut();
+  refreshPaletteSelect();
+}
+
+function updateRendererFromCurrentLut() {
   palette = buildLut(currentLut);
   uploadLutTexture();
-  refreshPaletteSelect();
   requestRender();
 }
 
