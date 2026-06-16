@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visual Experiment</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="panel">
+    <header>
+      <p class="eyebrow">Indexed field lab</p>
+      <h1>Visual Experiment</h1>
+    </header>
+
+    <nav class="tabs" aria-label="Panel sections">
+      <button class="tab-button active" type="button" data-tab="render">Render</button>
+      <button class="tab-button" type="button" data-tab="canvas">Canvas</button>
+      <button class="tab-button" type="button" data-tab="grad1">Grad 1</button>
+      <button class="tab-button" type="button" data-tab="grad2">Grad 2</button>
+      <button class="tab-button" type="button" data-tab="lut">LUT</button>
+    </nav>
+
+    <div class="tab-panel active" id="renderTab">
+      <section class="control-group">
+        <h2>Render</h2>
+        <label>
+          Time Speed <output id="timeScaleOut"></output>
+          <input id="timeScale" type="range" min="0" max="400" value="100">
+        </label>
+        <button id="toggleTime" type="button">Pause Time</button>
+        <button id="resetTime" type="button">Reset Time</button>
+        <button id="runGpuDiagnostics" type="button">GPU Diagnostics</button>
+        <pre id="gpuDiagnostics" class="diagnostics">Diagnostics not run.</pre>
+      </section>
+
+      <section class="control-group">
+        <h2>Combine</h2>
+        <label>
+          Operation
+          <select id="combine"></select>
+        </label>
+      </section>
+
+      <section class="control-group">
+        <h2>Palette</h2>
+        <label>
+          Palette
+          <select id="palette"></select>
+        </label>
+        <label>
+          Cycle Seconds <output id="cycleSecondsOut"></output>
+          <input id="cycleSeconds" type="range" min="0" max="120" step="0.5" value="12">
+        </label>
+        <label>
+          Offset <output id="paletteOffsetOut"></output>
+          <input id="paletteOffset" type="range" min="0" max="255" value="0">
+        </label>
+        <button id="toggleAnimation" type="button">Pause Palette</button>
+      </section>
+
+      <section class="control-group actions">
+        <button id="randomize" type="button">Randomize</button>
+        <button id="savePng" type="button">Save PNG</button>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="canvasTab">
+      <section class="control-group">
+        <h2>Canvas</h2>
+        <label>
+          Value Depth
+          <select id="valueBits">
+            <option value="8">8 bit / 256</option>
+            <option value="9">9 bit / 512</option>
+            <option value="10">10 bit / 1024</option>
+            <option value="11">11 bit / 2048</option>
+            <option value="12">12 bit / 4096</option>
+            <option value="13">13 bit / 8192</option>
+          </select>
+        </label>
+        <label>
+          Width
+          <input id="width" type="number" min="16" max="8192" step="16" value="1024">
+        </label>
+        <label>
+          Height
+          <input id="height" type="number" min="16" max="8192" step="16" value="768">
+        </label>
+        <button id="applySize" type="button">Apply Size</button>
+        <button id="resetView" type="button">Reset View</button>
+      </section>
+    </div>
+
+    <div class="tab-panel" id="grad1Tab">
+      <section class="control-group gradient-panel" id="gradient1Panel"></section>
+    </div>
+
+    <div class="tab-panel" id="grad2Tab">
+      <section class="control-group gradient-panel" id="gradient2Panel"></section>
+    </div>
+
+    <div class="tab-panel" id="lutTab">
+      <section class="control-group">
+        <h2>LUT Definition</h2>
+        <label>
+          ID
+          <input id="lutId" type="text" value="custom-lut">
+        </label>
+        <label>
+          Length
+          <input id="lutLength" type="number" min="2" max="4096" step="1" value="256">
+        </label>
+        <button id="applyLutLength" type="button">Apply Length</button>
+      </section>
+
+      <section class="control-group lut-editor-group">
+        <h2>Editor</h2>
+        <div class="lut-wrap">
+          <canvas id="lutCanvas" width="512" height="74"></canvas>
+          <div id="lutMarkers" class="lut-markers" aria-label="LUT points"></div>
+        </div>
+        <p class="hint">Click the bar to add a smooth point. Drag markers to move them. Click a marker to edit it.</p>
+        <div class="actions">
+          <button id="addSmoothPoint" type="button">Add Smooth</button>
+          <button id="addHardPoint" type="button">Add Hard</button>
+        </div>
+      </section>
+
+      <section class="control-group point-editor" id="pointEditor">
+        <h2>Selected Point</h2>
+        <label>
+          Index
+          <input id="pointIndex" type="number" min="0" max="255" step="1" value="0">
+        </label>
+        <label>
+          Color
+          <input id="pointColor" type="color" value="#000000">
+        </label>
+        <label>
+          Method
+          <select id="pointKind">
+            <option value="smooth">Smooth / interpolated</option>
+            <option value="hard">Hard / exact override</option>
+          </select>
+        </label>
+        <button id="deletePoint" type="button">Delete Point</button>
+      </section>
+
+      <section class="control-group actions">
+        <button id="applyLutToRenderer" type="button">Apply LUT</button>
+        <button id="saveLutJson" type="button">Save JSON</button>
+      </section>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="viewport" id="viewport">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="readout" id="readout"></div>
+  </main>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
