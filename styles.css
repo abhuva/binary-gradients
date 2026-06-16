@@ -136,6 +136,33 @@ label {
   letter-spacing: 0.01em;
 }
 
+.gradient-control {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(80px, 1fr) 46px;
+  align-items: center;
+  gap: 7px;
+}
+
+.gradient-control.has-snap {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(70px, 1fr) 46px 30px;
+}
+
+.gradient-control-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gradient-control output {
+  color: var(--text);
+  text-align: right;
+}
+
+.gradient-control input[type="range"] {
+  min-width: 0;
+}
+
 output {
   color: var(--text);
   font-weight: 400;
@@ -197,6 +224,16 @@ button:hover {
 
 button:active {
   background: var(--panel-hard);
+}
+
+.inline-zero {
+  width: 30px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  color: #111;
+  background: var(--accent-2);
+  border-color: var(--accent-2);
 }
 
 .actions {

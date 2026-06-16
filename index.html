@@ -28,6 +28,10 @@
           Time Speed <output id="timeScaleOut"></output>
           <input id="timeScale" type="range" min="0" max="400" value="100">
         </label>
+        <label>
+          Gradient Wrap
+          <select id="gradientWrapMode"></select>
+        </label>
         <button id="toggleTime" type="button">Pause Time</button>
         <button id="resetTime" type="button">Reset Time</button>
         <button id="runGpuDiagnostics" type="button">GPU Diagnostics</button>
@@ -50,7 +54,7 @@
         </label>
         <label>
           Cycle Seconds <output id="cycleSecondsOut"></output>
-          <input id="cycleSeconds" type="range" min="0" max="120" step="0.5" value="12">
+          <input id="cycleSeconds" type="range" min="0" max="40" step="0.5" value="12">
         </label>
         <label>
           Offset <output id="paletteOffsetOut"></output>

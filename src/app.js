@@ -28,6 +28,12 @@ const COMBINE_TYPES = {
 const COMBINE_IDS = Object.keys(COMBINE_TYPES);
 const COMBINE_INDEX = Object.fromEntries(COMBINE_IDS.map((id, index) => [id, index]));
 
+const GRADIENT_WRAP_TYPES = {
+  loop: 'Loop / saw',
+  pingpong: 'Ping-pong',
+};
+const GRADIENT_WRAP_INDEX = { loop: 0, pingpong: 1 };
+
 const COMMON_CONTROLS = [
   { key: 'scale', label: 'Scale', min: 1, max: 256, step: 1 },
   { key: 'offset', label: 'Offset', min: 0, max: 255, step: 1 },
@@ -106,6 +112,7 @@ const state = {
     { ...DEFAULT_GRADIENT, type: 'horizontal', scale: 12 },
   ],
   combine: 'xor',
+  gradientWrapMode: 'loop',
   paletteId: 'spectral',
   paletteOffset: 0,
   cycleSeconds: 12,
@@ -137,6 +144,7 @@ let drag = { active: false, pointerId: null, x: 0, y: 0, viewX: 0, viewY: 0 };
 let lutDrag = { active: false, pointerId: null, pointId: null };
 
 initSelect(controls.combine, COMBINE_TYPES, state.combine);
+initSelect(controls.gradientWrapMode, GRADIENT_WRAP_TYPES, state.gradientWrapMode);
 refreshPaletteSelect();
 wireControls();
 renderGradientPanel(0);
@@ -171,6 +179,7 @@ function bindControls() {
     resetView: document.querySelector('#resetView'),
     timeScale: document.querySelector('#timeScale'),
     timeScaleOut: document.querySelector('#timeScaleOut'),
+    gradientWrapMode: document.querySelector('#gradientWrapMode'),
     toggleTime: document.querySelector('#toggleTime'),
     resetTime: document.querySelector('#resetTime'),
     runGpuDiagnostics: document.querySelector('#runGpuDiagnostics'),
@@ -241,6 +250,10 @@ function wireControls() {
   controls.timeScale.addEventListener('input', () => {
     state.timeScale = Number(controls.timeScale.value) / 100;
     updateReadouts();
+  });
+  controls.gradientWrapMode.addEventListener('change', () => {
+    state.gradientWrapMode = controls.gradientWrapMode.value;
+    requestRender();
   });
   controls.toggleTime.addEventListener('click', () => {
     state.timeRunning = !state.timeRunning;
@@ -363,7 +376,9 @@ function renderGradientPanel(index) {
   panel.appendChild(typeLabel);
 
   panel.appendChild(el('h2', { className: 'subhead' }, 'Common'));
-  COMMON_CONTROLS.forEach((control) => panel.appendChild(createGradientControl(index, control)));
+  COMMON_CONTROLS
+    .filter((control) => gradient.type !== 'plasma' || control.key !== 'scale')
+    .forEach((control) => panel.appendChild(createGradientControl(index, control)));
 
   const specific = SPECIFIC_CONTROLS[gradient.type] ?? [];
   if (specific.length > 0) {
@@ -375,10 +390,11 @@ function renderGradientPanel(index) {
 function createGradientControl(index, control) {
   const gradient = state.gradients[index];
   const resolved = resolveControl(control);
-  const label = labelWrap(`${control.label} `);
+  const label = labelWrap('');
+  label.className = `gradient-control${control.key === 'offsetSpeed' ? ' has-snap' : ''}`;
+  const caption = el('span', { className: 'gradient-control-label' }, control.label);
   const output = document.createElement('output');
   output.value = formatNumber(gradient[control.key]);
-  label.appendChild(output);
 
   const input = document.createElement('input');
   input.type = 'range';
@@ -391,7 +407,18 @@ function createGradientControl(index, control) {
     output.value = formatNumber(gradient[control.key]);
     requestRender();
   });
-  label.appendChild(input);
+  label.append(caption, input, output);
+  if (control.key === 'offsetSpeed') {
+    const zeroButton = el('button', { className: 'inline-zero', type: 'button' }, '0');
+    zeroButton.title = 'Snap offset speed to zero';
+    zeroButton.addEventListener('click', () => {
+      gradient.offsetSpeed = 0;
+      input.value = '0';
+      output.value = '0';
+      requestRender();
+    });
+    label.appendChild(zeroButton);
+  }
   return label;
 }
 
@@ -573,6 +600,7 @@ function initWebGl() {
   uniform float u_valueRange;
   uniform int u_valueMask;
   uniform int u_combine;
+  uniform int u_gradientWrapMode;
   uniform int u_preview;
   uniform int u_type1;
   uniform int u_type2;
@@ -581,7 +609,15 @@ function initWebGl() {
   uniform sampler2D u_lut;
   out vec4 outColor;
 
-  float wrapValue(float v) { return mod(floor(v), u_valueRange); }
+  float wrapValue(float v) {
+    float whole = floor(v);
+    if (u_gradientWrapMode == 1) {
+      float peak = max(1.0, u_valueRange - 1.0);
+      float t = mod(whole, peak * 2.0);
+      return t <= peak ? t : peak * 2.0 - t;
+    }
+    return mod(whole, u_valueRange);
+  }
   float smoothCurve(float t) { return t * t * (3.0 - 2.0 * t); }
   vec2 smoothCurve(vec2 t) { return t * t * (3.0 - 2.0 * t); }
   float hash2(vec2 p, float seed) { return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 74.7) * 43758.5453); }
@@ -678,6 +714,7 @@ function initWebGl() {
     valueRange: gl.getUniformLocation(glProgram, 'u_valueRange'),
     valueMask: gl.getUniformLocation(glProgram, 'u_valueMask'),
     combine: gl.getUniformLocation(glProgram, 'u_combine'),
+    gradientWrapMode: gl.getUniformLocation(glProgram, 'u_gradientWrapMode'),
     preview: gl.getUniformLocation(glProgram, 'u_preview'),
     type1: gl.getUniformLocation(glProgram, 'u_type1'),
     type2: gl.getUniformLocation(glProgram, 'u_type2'),
@@ -706,6 +743,7 @@ function renderWebGl() {
   gl.uniform1f(glUniforms.valueRange, state.valueRange);
   gl.uniform1i(glUniforms.valueMask, state.valueMask);
   gl.uniform1i(glUniforms.combine, COMBINE_INDEX[state.combine] ?? 0);
+  gl.uniform1i(glUniforms.gradientWrapMode, GRADIENT_WRAP_INDEX[state.gradientWrapMode] ?? 0);
   gl.uniform1i(glUniforms.preview, previewIndex());
   gl.uniform1i(glUniforms.type1, FIELD_INDEX[state.gradients[0].type] ?? 0);
   gl.uniform1i(glUniforms.type2, FIELD_INDEX[state.gradients[1].type] ?? 0);
@@ -1267,6 +1305,7 @@ function randomize() {
 
 function syncControls() {
   controls.combine.value = state.combine;
+  controls.gradientWrapMode.value = state.gradientWrapMode;
   controls.palette.value = state.paletteId;
   controls.timeScale.value = Math.round(state.timeScale * 100);
   controls.valueBits.value = String(state.valueBits);
