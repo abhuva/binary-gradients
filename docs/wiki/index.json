@@ -1,5 +1,6 @@
 {
   "articles": {
+    "welcome": "docs/wiki/welcome.md",
     "presets": "docs/wiki/presets.md",
     "render": "docs/wiki/render.md",
     "render-combine": "docs/wiki/render-combine.md",

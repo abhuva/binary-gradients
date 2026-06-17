@@ -383,6 +383,15 @@ Presets intentionally do not store runtime/device state, active tab, gradient pr
 
 The Presets tab saves presets to browser `localStorage` under `binary-gradients.presets.v1`. It also supports JSON export/import for moving presets between browsers or machines. Imported presets are normalized through `normalizePreset()` before storage or load.
 
+Preset storage now has two layers:
+
+```text
+built-in presets -> loaded from presets/builtin-presets.json at startup
+user presets     -> saved in localStorage as a collection
+```
+
+The Presets tab renders a unified clickable browser with search and tag filters. Clicking a preset loads it immediately. User presets override built-ins with the same ID in the displayed list. `Export Collection` downloads the full user collection; `Export Selected` keeps single-preset export available.
+
 ## UI Contracts
 
 Current tabs:
@@ -412,6 +421,8 @@ The stage supports wheel zoom and drag pan. Viewport zoom/pan persists across ta
 
 The Canvas tab `Use Window` button copies the current browser window `innerWidth` and `innerHeight` into the canvas size fields, applies them, and recenters the viewport. This is a convenience for setting render dimensions; it is not presentation/fullscreen mode.
 
+On startup, the app runs the same window-size application once so the initial render dimensions match the current browser window.
+
 Presentation mode is entered through the small button in the left-panel title area. It hides the UI, disables viewport interaction, and fits the existing canvas uniformly inside the browser window without changing render dimensions or distorting pixels. It exits on any key or through the floating top-left button. That floating button appears on mouse movement and hides again after roughly two seconds of no mouse movement.
 
 The UI style should remain compact, square-cornered, and tool-like:
@@ -435,6 +446,8 @@ The in-app wiki is a static, dependency-free help/education system:
 - `src/wiki/frontmatter.js`, `src/wiki/markdown.js`, and `src/wiki/wiki-loader.js` intentionally implement a small controlled subset instead of adding a markdown/YAML dependency.
 
 When adding a UI section, add a `data-wiki` article ID to its heading and create/update the corresponding article and manifest entry.
+
+The app opens the `welcome` wiki article on startup as a brief intro and first-steps guide.
 
 ## Deployment
 

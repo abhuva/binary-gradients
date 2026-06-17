@@ -27,30 +27,42 @@
 
     <div class="tab-panel" id="presetsTab">
       <section class="control-group">
-        <h2 data-wiki="presets">Preset</h2>
+        <h2 data-wiki="presets">Preset Browser</h2>
+        <label>
+          Search
+          <input id="presetSearch" type="text" placeholder="name, tag, description">
+        </label>
+        <div id="presetTagFilters" class="tag-filter-row"></div>
+        <div id="presetBrowser" class="preset-browser"></div>
+      </section>
+
+      <section class="control-group">
+        <h2 data-wiki="presets">Save Current</h2>
         <label>
           Name
           <input id="presetName" type="text" value="Untitled Preset">
         </label>
-        <button id="savePreset" type="button">Save Current</button>
-      </section>
-
-      <section class="control-group">
-        <h2 data-wiki="presets">Saved Presets</h2>
         <label>
-          Preset
-          <select id="presetList"></select>
+          Tags
+          <input id="presetTags" type="text" placeholder="spiral, animated, sharp">
+        </label>
+        <label>
+          Description
+          <textarea id="presetDescription" rows="3" placeholder="Short note about this setup"></textarea>
         </label>
         <div class="actions">
-          <button id="loadPreset" type="button">Load</button>
+          <button id="savePreset" type="button">Save / Update</button>
           <button id="deletePreset" type="button">Delete</button>
         </div>
       </section>
 
       <section class="control-group">
-        <h2 data-wiki="presets">File</h2>
+        <h2 data-wiki="presets">Library File</h2>
         <div class="actions">
-          <button id="exportPreset" type="button">Export JSON</button>
+          <button id="exportPresetCollection" type="button">Export Collection</button>
+          <button id="exportPreset" type="button">Export Selected</button>
+        </div>
+        <div class="actions">
           <button id="importPreset" type="button">Import JSON</button>
         </div>
         <input id="importPresetFile" class="hidden-file" type="file" accept="application/json,.json">

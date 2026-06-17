@@ -1,6 +1,16 @@
 import { normalizeHex } from './domain/color.js';
 import { advancePaletteCycleState, wrapPaletteOffset } from './domain/palette-cycle.js';
-import { createPreset, normalizePreset, parsePreset, PRESET_STORAGE_KEY, serializePreset } from './domain/presets.js';
+import {
+  createPreset,
+  createPresetCollection,
+  mergePresetLibraries,
+  normalizePreset,
+  normalizePresetCollection,
+  parsePresetPayload,
+  PRESET_STORAGE_KEY,
+  serializePreset,
+  serializePresetCollection,
+} from './domain/presets.js';
 import {
   COMBINE_MODIFIER_IDS,
   COMBINE_MODIFIER_TYPES,
@@ -32,13 +42,19 @@ const readout = document.querySelector('#readout');
 const wikiPanelElement = document.querySelector('#wikiPanel');
 const controls = bindControls();
 const state = createInitialState();
+const STARTUP_WIKI_ID = 'welcome';
+const BUILTIN_PRESET_COLLECTION_URL = './presets/builtin-presets.json';
 
 let renderer = null;
 let glDiagnostics = [];
 let lutLibrary = makeBuiltinLuts();
 let currentLut = cloneLut(lutLibrary[state.paletteId]);
 let palette = buildLut(currentLut);
-let presets = [];
+let builtInPresets = [];
+let userPresets = [];
+let selectedPresetId = '';
+let activePresetTag = 'all';
+let presetSearchTerm = '';
 let selectedPointId = currentLut.points[0]?.id ?? null;
 let lastTime = performance.now();
 let renderQueued = false;
@@ -82,12 +98,16 @@ wireControls();
 renderGradientPanels();
 syncLutControls();
 setValueBits(state.valueBits);
-resizeBuffers();
-presets = readStoredPresets();
-refreshPresetList();
+applyWindowSize();
+userPresets = readStoredPresetCollection().presets;
+refreshPresetBrowser();
+loadBuiltInPresetCollection();
 lutEditor.render();
 requestAnimationFrame(tick);
-requestAnimationFrame(() => viewportController.reset());
+requestAnimationFrame(() => {
+  viewportController.reset();
+  wikiPanel.open(STARTUP_WIKI_ID);
+});
 
 function setupRenderer() {
   glDiagnostics = [];
@@ -108,9 +128,14 @@ function setupRenderer() {
 function wireControls() {
   controls.tabButtons.forEach((button) => button.addEventListener('click', () => setTab(button.dataset.tab)));
   controls.savePreset.addEventListener('click', saveCurrentPreset);
-  controls.presetList.addEventListener('change', syncPresetSelection);
-  controls.loadPreset.addEventListener('click', loadSelectedPreset);
+  controls.presetSearch.addEventListener('input', () => {
+    presetSearchTerm = controls.presetSearch.value.trim().toLowerCase();
+    refreshPresetBrowser();
+  });
+  controls.presetBrowser.addEventListener('click', handlePresetBrowserClick);
+  controls.presetTagFilters.addEventListener('click', handlePresetTagClick);
   controls.deletePreset.addEventListener('click', deleteSelectedPreset);
+  controls.exportPresetCollection.addEventListener('click', exportUserPresetCollection);
   controls.exportPreset.addEventListener('click', exportSelectedPreset);
   controls.importPreset.addEventListener('click', () => controls.importPresetFile.click());
   controls.importPresetFile.addEventListener('change', importPresetFile);
@@ -301,29 +326,45 @@ function showPresentationControl() {
 function saveCurrentPreset() {
   const preset = createPreset({
     name: controls.presetName.value,
+    description: controls.presetDescription.value,
+    tags: controls.presetTags.value,
     state,
     currentLut,
   });
-  presets = [...presets, preset];
-  writeStoredPresets();
-  refreshPresetList(preset.id);
+  userPresets = upsertPreset(userPresets, preset);
+  selectedPresetId = preset.id;
+  writeStoredPresetCollection();
+  refreshPresetBrowser();
   setPresetStatus(`Saved "${preset.name}".`);
-}
-
-function loadSelectedPreset() {
-  const preset = selectedPreset();
-  if (!preset) return;
-  applyPreset(preset);
-  setPresetStatus(`Loaded "${preset.name}".`);
 }
 
 function deleteSelectedPreset() {
   const preset = selectedPreset();
   if (!preset) return;
-  presets = presets.filter((item) => item.id !== preset.id);
-  writeStoredPresets();
-  refreshPresetList();
+  if (preset.source !== 'user') {
+    setPresetStatus('Built-in presets cannot be deleted. Save a user version first.');
+    return;
+  }
+  userPresets = userPresets.filter((item) => item.id !== preset.id);
+  selectedPresetId = '';
+  writeStoredPresetCollection();
+  refreshPresetBrowser();
   setPresetStatus(`Deleted "${preset.name}".`);
+}
+
+function exportUserPresetCollection() {
+  const collection = createPresetCollection({
+    name: 'Binary Gradients User Presets',
+    description: 'User preset collection exported from binary-gradients.',
+    presets: userPresets,
+  }, presetMaxTextureSize());
+  const blob = new Blob([serializePresetCollection(collection, presetMaxTextureSize())], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.download = 'binary-gradients-presets.json';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+  setPresetStatus(`Exported ${collection.presets.length} user preset${collection.presets.length === 1 ? '' : 's'}.`);
 }
 
 function exportSelectedPreset() {
@@ -342,14 +383,23 @@ async function importPresetFile() {
   const file = controls.importPresetFile.files?.[0];
   if (!file) return;
   try {
-    const preset = parsePreset(await file.text(), presetMaxTextureSize());
-    presets = upsertPreset(presets, preset);
-    writeStoredPresets();
-    refreshPresetList(preset.id);
-    setPresetStatus(`Imported "${preset.name}".`);
+    const payload = parsePresetPayload(await file.text(), presetMaxTextureSize());
+    if (payload.type === 'collection') {
+      userPresets = upsertPresets(userPresets, payload.collection.presets);
+      selectedPresetId = payload.collection.presets.at(-1)?.id ?? selectedPresetId;
+      writeStoredPresetCollection();
+      refreshPresetBrowser();
+      setPresetStatus(`Imported ${payload.collection.presets.length} preset${payload.collection.presets.length === 1 ? '' : 's'} from "${payload.collection.name}".`);
+    } else {
+      userPresets = upsertPreset(userPresets, payload.preset);
+      selectedPresetId = payload.preset.id;
+      writeStoredPresetCollection();
+      refreshPresetBrowser();
+      setPresetStatus(`Imported "${payload.preset.name}".`);
+    }
   } catch (error) {
     console.error('Preset import failed.', error);
-    setPresetStatus('Import failed. File is not a valid preset JSON.');
+    setPresetStatus('Import failed. File is not a valid preset or collection JSON.');
   } finally {
     controls.importPresetFile.value = '';
   }
@@ -395,63 +445,73 @@ function applyPreset(rawPreset) {
   requestRender();
 }
 
-function readStoredPresets() {
+async function loadBuiltInPresetCollection() {
   try {
-    const raw = JSON.parse(localStorage.getItem(PRESET_STORAGE_KEY) || '[]');
-    if (!Array.isArray(raw)) return [];
-    return raw.map((preset) => normalizePreset(preset, presetMaxTextureSize()));
+    const response = await fetch(BUILTIN_PRESET_COLLECTION_URL, { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const collection = normalizePresetCollection(await response.json(), presetMaxTextureSize());
+    builtInPresets = collection.presets;
+    refreshPresetBrowser();
+    setPresetStatus(`Loaded ${builtInPresets.length} built-in preset${builtInPresets.length === 1 ? '' : 's'}.`);
   } catch (error) {
-    console.error('Stored presets could not be read.', error);
-    return [];
+    console.warn('Built-in presets could not be loaded.', error);
+    setPresetStatus('Built-in presets unavailable. Showing local user presets.');
   }
 }
 
-function writeStoredPresets() {
+function readStoredPresetCollection() {
   try {
-    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets.map((preset) => normalizePreset(preset)), null, 2));
+    return normalizePresetCollection(JSON.parse(localStorage.getItem(PRESET_STORAGE_KEY) || '[]'), presetMaxTextureSize());
+  } catch (error) {
+    console.error('Stored presets could not be read.', error);
+    return createPresetCollection({ name: 'User Presets', presets: [] }, presetMaxTextureSize());
+  }
+}
+
+function writeStoredPresetCollection() {
+  try {
+    const collection = createPresetCollection({
+      name: 'Binary Gradients User Presets',
+      description: 'User presets saved in this browser.',
+      presets: userPresets,
+    }, presetMaxTextureSize());
+    localStorage.setItem(PRESET_STORAGE_KEY, serializePresetCollection(collection, presetMaxTextureSize()));
   } catch (error) {
     console.error('Stored presets could not be written.', error);
     setPresetStatus('Save failed. Browser storage is unavailable or full.');
   }
 }
 
-function refreshPresetList(selectedId = controls.presetList.value) {
-  if (presets.length === 0) {
-    const option = document.createElement('option');
-    option.value = '';
-    option.textContent = 'No presets saved';
-    controls.presetList.replaceChildren(option);
-  } else {
-    controls.presetList.replaceChildren(...presets.map((preset) => {
-      const option = document.createElement('option');
-      option.value = preset.id;
-      option.textContent = preset.name;
-      option.selected = preset.id === selectedId;
-      return option;
-    }));
-    if (!presets.some((preset) => preset.id === controls.presetList.value)) {
-      controls.presetList.value = presets[presets.length - 1].id;
-    }
+function refreshPresetBrowser() {
+  const allPresets = mergedPresets();
+  const tags = availablePresetTags(allPresets);
+  renderPresetTagFilters(tags);
+  const visiblePresets = allPresets.filter(presetMatchesFilters);
+  controls.presetBrowser.replaceChildren(...visiblePresets.map(renderPresetCard));
+  if (!visiblePresets.length) {
+    controls.presetBrowser.appendChild(el('p', { className: 'hint' }, 'No presets match the current filters.'));
   }
   syncPresetSelection();
 }
 
 function syncPresetSelection() {
-  const hasPreset = Boolean(selectedPreset());
-  controls.loadPreset.disabled = !hasPreset;
-  controls.deletePreset.disabled = !hasPreset;
-  controls.exportPreset.disabled = !hasPreset;
-  if (hasPreset) {
-    const preset = selectedPreset();
+  const preset = selectedPreset();
+  controls.deletePreset.disabled = !preset || preset.source !== 'user';
+  controls.exportPreset.disabled = !preset;
+  controls.exportPresetCollection.disabled = userPresets.length === 0;
+  if (preset) {
     controls.presetName.value = preset.name;
+    controls.presetTags.value = preset.tags.join(', ');
+    controls.presetDescription.value = preset.description;
     setPresetStatus(`Selected "${preset.name}".`);
   } else {
-    setPresetStatus('No preset selected.');
+    controls.deletePreset.disabled = true;
+    setPresetStatus(mergedPresets().length ? 'Select a preset.' : 'No presets available.');
   }
 }
 
 function selectedPreset() {
-  return presets.find((preset) => preset.id === controls.presetList.value) ?? null;
+  return mergedPresets().find((preset) => preset.id === selectedPresetId) ?? null;
 }
 
 function setPresetStatus(message) {
@@ -462,6 +522,73 @@ function upsertPreset(items, preset) {
   const index = items.findIndex((item) => item.id === preset.id);
   if (index === -1) return [...items, preset];
   return items.map((item, itemIndex) => (itemIndex === index ? preset : item));
+}
+
+function upsertPresets(items, nextPresets) {
+  return nextPresets.reduce((result, preset) => upsertPreset(result, preset), items);
+}
+
+function mergedPresets() {
+  return mergePresetLibraries({ builtIn: builtInPresets, user: userPresets });
+}
+
+function availablePresetTags(presets) {
+  return [...new Set(presets.flatMap((preset) => preset.tags))].sort();
+}
+
+function renderPresetTagFilters(tags) {
+  const buttons = [
+    renderTagButton('all', 'All'),
+    ...tags.map((tag) => renderTagButton(tag, tag)),
+  ];
+  controls.presetTagFilters.replaceChildren(...buttons);
+}
+
+function renderTagButton(tag, label) {
+  const button = el('button', { className: 'tag-filter-button', type: 'button', dataset: { presetTag: tag } }, label);
+  button.classList.toggle('active', activePresetTag === tag);
+  return button;
+}
+
+function presetMatchesFilters(preset) {
+  const tagMatch = activePresetTag === 'all' || preset.tags.includes(activePresetTag);
+  if (!tagMatch) return false;
+  if (!presetSearchTerm) return true;
+  const haystack = [preset.name, preset.description, preset.source, ...preset.tags].join(' ').toLowerCase();
+  return haystack.includes(presetSearchTerm);
+}
+
+function renderPresetCard(preset) {
+  const card = el('button', {
+    className: 'preset-card',
+    type: 'button',
+    dataset: { presetId: preset.id },
+  });
+  card.classList.toggle('active', preset.id === selectedPresetId);
+  const title = el('span', { className: 'preset-card-title' }, preset.name);
+  const source = el('span', { className: `preset-source preset-source-${preset.source}` }, preset.source);
+  const description = el('span', { className: 'preset-card-description' }, preset.description || 'No description.');
+  const tagLine = el('span', { className: 'preset-card-tags' }, preset.tags.length ? preset.tags.join(' · ') : 'untagged');
+  card.append(title, source, description, tagLine);
+  return card;
+}
+
+function handlePresetBrowserClick(event) {
+  const card = event.target.closest('[data-preset-id]');
+  if (!card) return;
+  const preset = mergedPresets().find((item) => item.id === card.dataset.presetId);
+  if (!preset) return;
+  selectedPresetId = preset.id;
+  applyPreset(preset);
+  refreshPresetBrowser();
+  setPresetStatus(`Loaded "${preset.name}".`);
+}
+
+function handlePresetTagClick(event) {
+  const button = event.target.closest('[data-preset-tag]');
+  if (!button) return;
+  activePresetTag = button.dataset.presetTag;
+  refreshPresetBrowser();
 }
 
 function presetMaxTextureSize() {
