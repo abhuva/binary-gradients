@@ -35,8 +35,10 @@ RGB(x, y) = LUT[V]
 - Preserve existing user changes; never revert unrelated edits.
 - Document run/deploy steps in `README.md` when they change.
 - Keep `AI_CONTEXT.md` aligned when changing architecture, UI contracts, rendering behavior, LUT data behavior, deployment, or validation flow.
+- Always create and work on a task branch before making changes. Do not edit directly on `main` or any default branch.
 - Do not create or update a PR unless the user explicitly asks in the current turn.
-- This repo auto-deploys on push to `main`; push only when the user asks for changes to be published or when the current task clearly includes updating the live site.
+- Never push to any remote unless the user explicitly asks to push in the current turn.
+- This repo auto-deploys on push to `main`; do not treat deployment as implicit permission to push.
 
 ## Terminal Reliability Rules
 

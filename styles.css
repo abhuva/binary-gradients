@@ -39,7 +39,11 @@ body {
   border-right: 1px solid var(--border);
 }
 
-header {
+.panel-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: start;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
@@ -76,6 +80,44 @@ h2 {
   text-transform: uppercase;
 }
 
+.wiki-heading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wiki-help-button {
+  width: 19px;
+  min-height: 19px;
+  margin: 0;
+  padding: 0;
+  color: #111;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.context-help-button {
+  display: block;
+  width: 19px;
+  min-height: 19px;
+  margin: -2px 0 8px auto;
+  padding: 0;
+  color: #111;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.context-help-button:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
 .subhead {
   margin: 12px 0 7px;
   color: var(--accent-2);
@@ -86,7 +128,7 @@ h2 {
   top: -10px;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1px;
   padding: 0 0 10px;
   background: var(--panel);
@@ -142,8 +184,25 @@ label {
   gap: 7px;
 }
 
+.gradient-control.has-step {
+  grid-template-columns: minmax(66px, 0.55fr) 24px 24px minmax(56px, 1fr) 46px;
+  gap: 4px;
+}
+
 .gradient-control.has-snap {
   grid-template-columns: minmax(76px, 0.65fr) minmax(70px, 1fr) 46px 30px;
+}
+
+.gradient-control.has-step.has-snap {
+  grid-template-columns: minmax(66px, 0.55fr) 24px 24px minmax(46px, 1fr) 46px 30px;
+}
+
+.gradient-control.select-control {
+  grid-template-columns: minmax(66px, 0.45fr) minmax(150px, 1.55fr);
+}
+
+.gradient-control.select-control select {
+  min-width: 0;
 }
 
 .gradient-control-label {
@@ -161,6 +220,157 @@ label {
 
 .gradient-control input[type="range"] {
   min-width: 0;
+}
+
+.gradient-step-button {
+  width: 24px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  color: #111;
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.angle-presets {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.angle-preset-button {
+  min-height: 22px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 10px;
+}
+
+.generator-control {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(80px, 1fr) 54px;
+  align-items: center;
+  gap: 7px;
+}
+
+.generator-control span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generator-control output {
+  color: var(--text);
+  text-align: right;
+}
+
+.generator-control input[type="range"] {
+  min-width: 0;
+}
+
+.generator-field {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(80px, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.generator-field span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-slider {
+  grid-template-columns: minmax(76px, 0.7fr) minmax(70px, 1fr) 52px;
+  align-items: center;
+  gap: 7px;
+}
+
+.compact-slider-step {
+  grid-template-columns: minmax(64px, 0.55fr) 24px 24px minmax(50px, 1fr) 46px;
+  gap: 4px;
+}
+
+.compact-slider span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-slider input[type="range"] {
+  min-width: 0;
+}
+
+.compact-slider output {
+  color: var(--text);
+  text-align: right;
+}
+
+.compact-select {
+  grid-template-columns: minmax(86px, 0.75fr) minmax(100px, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.compact-select span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-select select {
+  min-width: 0;
+}
+
+.button-row-label {
+  gap: 6px;
+}
+
+.button-row {
+  display: grid;
+  gap: 4px;
+}
+
+.combine-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.modifier-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mode-button {
+  min-height: 25px;
+  margin-top: 0;
+  padding: 4px 5px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.mode-button.active {
+  color: #031014;
+  background: var(--accent);
+  border-color: var(--accent-2);
+}
+
+.toggle-control {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.toggle-control input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
 }
 
 output {
@@ -226,6 +436,15 @@ button:active {
   background: var(--panel-hard);
 }
 
+.icon-button {
+  width: 28px;
+  min-height: 24px;
+  margin-top: 0;
+  padding: 0;
+  color: var(--accent);
+  line-height: 1;
+}
+
 .inline-zero {
   width: 30px;
   min-height: 22px;
@@ -240,6 +459,17 @@ button:active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+}
+
+.actions-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.actions-three button {
+  margin-top: 0;
+  padding-right: 4px;
+  padding-left: 4px;
+  font-size: 10px;
 }
 
 .hint {
@@ -259,6 +489,10 @@ button:active {
   border: 1px solid var(--border);
   font: 10px/1.35 "Cascadia Mono", "Consolas", "Lucida Console", monospace;
   white-space: pre-wrap;
+}
+
+.hidden-file {
+  display: none;
 }
 
 .lut-wrap {
@@ -394,6 +628,135 @@ body.lut-dock-active .viewport {
   box-shadow: 0 0 0 1px var(--border);
 }
 
+.wiki-panel {
+  position: absolute;
+  inset: 42px;
+  z-index: 20;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  overflow: hidden;
+  background: rgba(14, 14, 14, 0.97);
+  border: 1px solid var(--accent);
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.62);
+}
+
+.wiki-panel[hidden] {
+  display: none;
+}
+
+.wiki-panel-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(240, 200, 80, 0.12), rgba(24, 24, 24, 0));
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-panel-head h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.wiki-summary {
+  max-width: 74ch;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.wiki-close {
+  width: 28px;
+  min-height: 28px;
+  margin: 0;
+  padding: 0;
+  color: var(--accent);
+}
+
+.wiki-body {
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.wiki-body h2,
+.wiki-body h3,
+.wiki-body h4,
+.wiki-body p,
+.wiki-body ul,
+.wiki-body pre {
+  max-width: 82ch;
+}
+
+.wiki-body h2,
+.wiki-body h3,
+.wiki-body h4 {
+  margin: 18px 0 8px;
+  color: var(--accent);
+}
+
+.wiki-body p {
+  margin: 0 0 12px;
+}
+
+.wiki-body ul {
+  margin: 0 0 13px;
+  padding-left: 18px;
+}
+
+.wiki-body code {
+  padding: 1px 4px;
+  color: var(--accent-2);
+  background: var(--input);
+  border: 1px solid var(--border-soft);
+}
+
+.wiki-body pre {
+  padding: 10px;
+  overflow: auto;
+  background: #080808;
+  border: 1px solid var(--border);
+}
+
+.wiki-body pre code {
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+}
+
+.wiki-body a {
+  color: var(--accent-2);
+}
+
+.wiki-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.wiki-related span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wiki-related button {
+  width: auto;
+  min-height: 24px;
+  margin: 0;
+  padding: 2px 7px;
+  font-size: 10px;
+}
+
 .readout {
   position: absolute;
   right: 10px;
@@ -431,6 +794,62 @@ body.lut-dock-active .readout {
 
 body.lut-dock-active .lut-dock {
   display: grid;
+}
+
+.presentation-exit {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  width: 30px;
+  min-height: 30px;
+  margin: 0;
+  padding: 0;
+  color: var(--accent);
+  background: rgba(24, 24, 24, 0.88);
+  border-color: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms linear;
+}
+
+body.presentation-mode {
+  display: block;
+  overflow: hidden;
+}
+
+body.presentation-mode .panel,
+body.presentation-mode .readout,
+body.presentation-mode .lut-dock,
+body.presentation-mode .wiki-panel {
+  display: none;
+}
+
+body.presentation-mode .stage {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  min-height: 100vh;
+  padding: 0;
+  background: var(--stage);
+}
+
+body.presentation-mode .viewport {
+  inset: 0 !important;
+  cursor: none;
+}
+
+body.presentation-mode.presentation-controls-visible .viewport {
+  cursor: default;
+}
+
+body.presentation-mode #canvas {
+  box-shadow: none;
+}
+
+body.presentation-mode.presentation-controls-visible .presentation-exit {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .lut-dock-head {
@@ -507,6 +926,10 @@ body.lut-dock-active .lut-dock {
     grid-template-rows: auto 1fr;
     gap: 8px;
     padding: 10px;
+  }
+
+  .wiki-panel {
+    inset: 10px;
   }
 
   .lut-dock-head {

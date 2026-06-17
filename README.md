@@ -69,12 +69,31 @@ http://localhost:8080
 
 Hard-refresh after JS changes if the browser appears to keep stale code.
 
+## Validation
+
+Run syntax checks for all JavaScript modules:
+
+```powershell
+Get-ChildItem -Recurse src,tests -Filter *.js | ForEach-Object { node --check $_.FullName }
+```
+
+Run the dependency-free Node test suite:
+
+```powershell
+npm test
+```
+
 ## Files
 
 ```text
 index.html      UI structure and panel tabs
 styles.css      compact dev-tool styling
-src/app.js      all app state, WebGL shader, gradient UI, LUT editor, viewport interaction
+src/app.js      composition root and runtime orchestration
+src/domain/     pure registries, state, color, value, random, and cycle helpers
+src/lut/        LUT model, built-ins, export, and generators
+src/render/     shader contract/source and WebGL renderer
+src/ui/         DOM binding, gradient panel, LUT editor, and viewport behavior
+tests/          Node tests for pure modules and shader/registry contracts
 docs/           project notes and handoff material
 ```
 
