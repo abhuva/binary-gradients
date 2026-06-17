@@ -98,8 +98,8 @@ function originControls() {
 }
 
 export const COMMON_CONTROLS = [
-  { key: 'scale', label: 'Scale', min: 1, max: 256, step: 1 },
-  { key: 'offset', label: 'Offset', min: 0, max: 255, step: 1 },
+  { key: 'scale', label: 'Scale', min: 1, step: 1 },
+  { key: 'offset', label: 'Offset', min: 0, step: 1 },
   { key: 'offsetSpeed', label: 'Speed', min: -240, max: 240, step: 1 },
 ];
 

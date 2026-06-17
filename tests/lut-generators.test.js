@@ -47,6 +47,14 @@ test('different generator seeds produce different stable point data', () => {
   assert.notDeepEqual(stablePointData(first), stablePointData(second));
 });
 
+test('falsy generator seed uses the same effective seed for id and points', () => {
+  const zeroSeed = generateLutDefinition({ ...baseOptions, seed: 0 });
+  const oneSeed = generateLutDefinition({ ...baseOptions, seed: 1 });
+
+  assert.equal(zeroSeed.id, 'harmony-1');
+  assert.deepEqual(stablePointData(zeroSeed), stablePointData(oneSeed));
+});
+
 test('unknown generator type falls back to harmony behavior with sanitized id', () => {
   const generated = generateLutDefinition({ ...baseOptions, type: 'not-real' });
 

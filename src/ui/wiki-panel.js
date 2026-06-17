@@ -1,18 +1,20 @@
 import { renderMarkdown } from '../wiki/markdown.js';
 
 export function createWikiPanel({ panel, loader }) {
-  const title = panel.querySelector('[data-wiki-title]');
-  const summary = panel.querySelector('[data-wiki-summary]');
-  const body = panel.querySelector('[data-wiki-body]');
-  const related = panel.querySelector('[data-wiki-related]');
-  const closeButton = panel.querySelector('[data-wiki-close]');
+  const title = panel?.querySelector('[data-wiki-title]') ?? null;
+  const summary = panel?.querySelector('[data-wiki-summary]') ?? null;
+  const body = panel?.querySelector('[data-wiki-body]') ?? null;
+  const related = panel?.querySelector('[data-wiki-related]') ?? null;
+  const closeButton = panel?.querySelector('[data-wiki-close]') ?? null;
+  const isReady = Boolean(panel && title && summary && body && related && closeButton);
 
-  closeButton.addEventListener('click', close);
+  if (closeButton) closeButton.addEventListener('click', close);
   window.addEventListener('keydown', (event) => {
-    if (!panel.hidden && event.key === 'Escape') close();
+    if (panel && !panel.hidden && event.key === 'Escape') close();
   });
 
   async function open(id) {
+    if (!isReady) return;
     panel.hidden = false;
     panel.classList.add('loading');
     title.textContent = 'Loading wiki...';
@@ -33,10 +35,12 @@ export function createWikiPanel({ panel, loader }) {
   }
 
   function close() {
+    if (!panel) return;
     panel.hidden = true;
   }
 
   function renderArticle(article) {
+    if (!isReady) return;
     title.textContent = article.metadata.title || article.id;
     summary.textContent = article.metadata.summary || '';
     body.replaceChildren(renderMarkdown(article.body, { onWikiLink: open }));
@@ -44,6 +48,7 @@ export function createWikiPanel({ panel, loader }) {
   }
 
   function renderRelated(ids) {
+    if (!related) return;
     related.replaceChildren();
     if (!Array.isArray(ids) || ids.length === 0) return;
     const label = document.createElement('span');
@@ -59,6 +64,7 @@ export function createWikiPanel({ panel, loader }) {
   }
 
   function enhance(root = document) {
+    if (!isReady) return;
     root.querySelectorAll('[data-wiki]').forEach((node) => {
       if (node.dataset.wikiEnhanced === 'true') return;
       node.dataset.wikiEnhanced = 'true';

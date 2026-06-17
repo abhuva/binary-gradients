@@ -25,9 +25,9 @@ If a combined image is confusing, inspect each gradient alone.
 Questions to ask:
 
 - Is the scale too dense or too broad?
-- Is field wrap producing the expected seams or mirrors?
-- Is animation coming from this gradient or the other one?
-- Is the LUT making the field hard to read?
+- Does field wrap produce the expected seams or mirrors?
+- Which gradient is driving the visible animation?
+- Does the LUT make the field hard to read?
 
 # Returning to final render
 

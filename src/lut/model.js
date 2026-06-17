@@ -55,13 +55,14 @@ export function normalizePoint(point, length) {
 }
 
 export function exportLut(definition) {
+  const length = clampNumber(definition.length, 2, 4096);
   const normalizedPoints = definition.points
-    .map((point) => normalizePoint(point, definition.length))
+    .map((point) => normalizePoint(point, length))
     .sort((a, b) => a.index - b.index || a.kind.localeCompare(b.kind));
   return {
     version: 1,
     id: sanitizeLutId(definition.id),
-    length: clampNumber(definition.length, 2, 4096),
+    length,
     gradientStops: normalizedPoints
       .filter((point) => point.kind === 'smooth')
       .map(({ index, color }) => ({ index, color })),

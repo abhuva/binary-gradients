@@ -89,6 +89,24 @@ test('normalizePreset migrates legacy gradientWrapMode into split wrap modes', (
   assert.equal(preset.state.paletteWrapMode, 'pingpong');
 });
 
+test('normalizePreset ignores malformed LUT point entries', () => {
+  const preset = normalizePreset({
+    lut: {
+      id: 'broken-lut',
+      length: 4,
+      points: [
+        null,
+        { index: 0, color: '#000000', kind: 'smooth' },
+        'bad',
+        { index: 3, color: '#ffffff', kind: 'hard' },
+      ],
+    },
+  });
+
+  assert.equal(preset.lut.length, 4);
+  assert.deepEqual(preset.lut.points.map((point) => point.index), [0, 3]);
+});
+
 test('serializePreset and parsePreset round-trip normalized preset data', () => {
   const preset = createPreset({ name: 'Round Trip', state: createInitialState(), currentLut: lut });
   const parsed = parsePreset(serializePreset(preset));

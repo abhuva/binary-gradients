@@ -9,6 +9,7 @@ export function clamp(value, min, max) {
 }
 
 export function wrapRange(value, valueRange) {
+  if (!Number.isFinite(valueRange) || valueRange <= 0) return 0;
   return ((Number(value) % valueRange) + valueRange) % valueRange;
 }
 

@@ -80,10 +80,11 @@ test('shader source contains branches for non-default combine operation ids and 
 
 test('shader source separates field wrap from palette wrap', () => {
   const { fs } = createMainShaderSources();
+  const pingPongWrapId = GRADIENT_WRAP_SHADER_IDS.pingpong;
   assert.ok(fs.includes('uniform int u_fieldWrapMode;'));
   assert.ok(fs.includes('uniform int u_paletteWrapMode;'));
-  assert.ok(fs.includes('if (u_fieldWrapMode == 1) return pingPongValue(whole);'));
-  assert.ok(fs.includes('if (u_paletteWrapMode == 1) return pingPongValue(v);'));
+  assert.ok(fs.includes(`if (u_fieldWrapMode == ${pingPongWrapId}) return pingPongValue(whole);`));
+  assert.ok(fs.includes(`if (u_paletteWrapMode == ${pingPongWrapId}) return pingPongValue(v);`));
   assert.ok(fs.includes('return wrapFieldValue(value + offset);'));
   assert.ok(fs.includes('wrapPaletteValue(float(value) + u_paletteOffset)'));
   assert.ok(fs.includes('return mod(v, u_valueRange);'));

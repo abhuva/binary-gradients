@@ -69,6 +69,21 @@ test('exportLut emits normalized v1 JSON shape', () => {
   });
 });
 
+test('exportLut clamps point indices to the exported length', () => {
+  const exported = exportLut({
+    id: 'oversized',
+    length: 9999,
+    points: [
+      { id: 'a', index: 9998, color: '#ffffff', kind: 'smooth' },
+      { id: 'b', index: 9000, color: '#ff0000', kind: 'hard' },
+    ],
+  });
+  const indices = [...exported.gradientStops, ...exported.pointOverrides].map((point) => point.index);
+
+  assert.equal(exported.length, 4096);
+  assert.ok(indices.every((index) => index >= 0 && index < exported.length));
+});
+
 test('cloneLut preserves editable data but assigns fresh point ids', () => {
   const original = {
     id: 'source',

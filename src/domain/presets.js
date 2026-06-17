@@ -125,6 +125,7 @@ function normalizePresetLut(lut) {
   const length = clampNumber(source.length, 2, 4096);
   const points = Array.isArray(source.points) ? source.points : DEFAULT_LUT.points;
   const normalizedPoints = points
+    .filter((point) => point && typeof point === 'object')
     .map((point) => normalizePoint({ ...point, id: point.id || uid() }, length))
     .sort((a, b) => a.index - b.index || a.kind.localeCompare(b.kind));
 

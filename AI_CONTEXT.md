@@ -206,6 +206,8 @@ Common controls:
 - `offsetSpeed`
 - `scale`, except Plasma and Fan do not show scale because it has no effect there.
 
+`scale`, `offset`, and `offsetSpeed` slider bounds are resolved in the UI from the active value depth. Do not reintroduce fixed 8-bit limits for these common controls.
+
 Type-specific controls are defined in `SPECIFIC_CONTROLS`.
 
 Gradient controls support range sliders by default and dropdowns through metadata:

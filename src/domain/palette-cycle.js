@@ -1,4 +1,11 @@
 export function advancePaletteCycleState({ offset, direction = 1, mode, valueRange, valueMask, cycleSeconds, dt }) {
+  if (!Number.isFinite(cycleSeconds) || cycleSeconds <= 0) {
+    return {
+      offset: wrapPaletteOffset(offset, valueRange),
+      direction,
+    };
+  }
+
   if (mode !== 'pingpong') {
     return {
       offset: wrapPaletteOffset(offset + dt * valueRange / cycleSeconds, valueRange),
@@ -24,5 +31,6 @@ export function advancePaletteCycleState({ offset, direction = 1, mode, valueRan
 }
 
 export function wrapPaletteOffset(value, valueRange) {
+  if (!Number.isFinite(valueRange) || valueRange <= 0) return 0;
   return ((Number(value) % valueRange) + valueRange) % valueRange;
 }

@@ -9,6 +9,12 @@ test('wrapRange preserves fractional values across positive and negative input',
   assert.equal(wrapRange(-0.25, 256), 255.75);
 });
 
+test('wrapRange returns zero for invalid ranges', () => {
+  assert.equal(wrapRange(10, undefined), 0);
+  assert.equal(wrapRange(10, 0), 0);
+  assert.equal(wrapRange(10, Infinity), 0);
+});
+
 test('wrapPaletteOffset matches active value range wrapping', () => {
   assert.equal(wrapPaletteOffset(1025, 1024), 1);
   assert.equal(wrapPaletteOffset(-2, 1024), 1022);
@@ -56,6 +62,20 @@ test('ping-pong palette cycling reflects at the low endpoint and flips direction
 
   assert.equal(next.direction, 1);
   assert.equal(next.offset, 49);
+});
+
+test('palette cycling ignores invalid cycle durations', () => {
+  const next = advancePaletteCycleState({
+    offset: 42,
+    direction: -1,
+    mode: 'pingpong',
+    valueRange: 256,
+    valueMask: 255,
+    cycleSeconds: 0,
+    dt: 1,
+  });
+
+  assert.deepEqual(next, { offset: 42, direction: -1 });
 });
 
 test('resolveValueDepth clamps requested bits and max texture size', () => {

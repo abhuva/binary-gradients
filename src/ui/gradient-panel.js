@@ -111,6 +111,7 @@ function setRangeInputValue(input, value, output, onChange) {
 }
 
 function resolveControl(control, valueMask, valueRange) {
+  if (control.key === 'scale') return { ...control, max: valueRange };
   if (control.key === 'offset') return { ...control, max: valueMask };
   if (control.key === 'offsetSpeed') return { ...control, min: -valueRange, max: valueRange };
   return control;

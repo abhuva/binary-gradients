@@ -64,10 +64,11 @@ export const LUT_GENERATOR_CONTROLS = {
 };
 
 export function generateLutDefinition(options) {
-  const rng = mulberry32(options.seed || 1);
+  const effectiveSeed = options.seed || 1;
+  const rng = mulberry32(effectiveSeed);
   const type = Object.prototype.hasOwnProperty.call(LUT_GENERATOR_TYPES, options.type) ? options.type : 'harmony';
   return {
-    id: sanitizeLutId(`${type}-${options.seed}`),
+    id: sanitizeLutId(`${type}-${effectiveSeed}`),
     length: options.length,
     points: createGeneratedLutPoints(type, options, rng),
   };

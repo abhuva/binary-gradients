@@ -1,7 +1,8 @@
-import { COMBINE_MODIFIER_SHADER_IDS, COMBINE_OPERATION_SHADER_IDS, FIELD_SHADER_IDS } from '../domain/registries.js';
+import { COMBINE_MODIFIER_SHADER_IDS, COMBINE_OPERATION_SHADER_IDS, FIELD_SHADER_IDS, GRADIENT_WRAP_SHADER_IDS } from '../domain/registries.js';
 import { GRADIENT_UNIFORM_LENGTH } from './shader-contract.js';
 
 export function createMainShaderSources() {
+  const pingPongWrapId = GRADIENT_WRAP_SHADER_IDS.pingpong;
   const vs = `#version 300 es
   precision highp float;
   const vec2 POS[3] = vec2[3](vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
@@ -36,11 +37,11 @@ export function createMainShaderSources() {
   }
   float wrapFieldValue(float v) {
     float whole = floor(v);
-    if (u_fieldWrapMode == 1) return pingPongValue(whole);
+    if (u_fieldWrapMode == ${pingPongWrapId}) return pingPongValue(whole);
     return mod(floor(v), u_valueRange);
   }
   float wrapPaletteValue(float v) {
-    if (u_paletteWrapMode == 1) return pingPongValue(v);
+    if (u_paletteWrapMode == ${pingPongWrapId}) return pingPongValue(v);
     return mod(v, u_valueRange);
   }
   float smoothCurve(float t) { return t * t * (3.0 - 2.0 * t); }
