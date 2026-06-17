@@ -438,7 +438,15 @@ Excluded from a preset:
 - Derived value-depth fields beyond normalization output.
 - Active tab, gradient preview toggles, viewport pan/zoom, and presentation mode.
 
-The Presets tab is intentionally simple: save current, load/delete saved browser presets, export selected preset JSON, and import preset JSON. Presets are stored in `localStorage` under `binary-gradients.presets.v1`; JSON export/import is the durable cross-browser path.
+Preset storage has layered sources:
+
+- Built-in presets are loaded from `presets/builtin-presets.json` at startup.
+- User presets are stored in `localStorage` under `binary-gradients.presets.v1` as a preset collection.
+- Imported JSON can be either one preset or a full collection.
+
+The Presets tab renders a unified clickable browser with search and tag filters. Clicking a preset loads it immediately. Built-in presets are read-only examples; user presets can be saved, updated, deleted, and exported. If a user preset has the same ID as a built-in preset, the user preset wins in the displayed browser.
+
+`Export Collection` downloads the complete user preset collection. `Export Selected` remains available for individual preset sharing.
 
 Loading a preset normalizes all data, recomputes value depth from the current device texture limit, replaces the editable LUT, registers that LUT in the palette selector, regenerates gradient controls, syncs UI controls, recenters the viewport, and renders.
 

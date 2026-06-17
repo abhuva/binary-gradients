@@ -41,9 +41,29 @@ The current animation time is part of the saved recipe because animated fields c
 
 # Local storage
 
-Saved presets live in browser `localStorage`. This is convenient, but browser data can be cleared.
+User presets live in browser `localStorage`. This is convenient, but browser data can be cleared.
 
-Use JSON export for anything important.
+Use `Export Collection` for anything important. This downloads the full user preset collection, not only one setup.
+
+# Built-in presets
+
+The app also loads a bundled preset collection at startup. These presets are read-only examples that make the online version useful immediately, even before you save anything locally.
+
+If a user preset has the same ID as a built-in preset, the user preset wins in the browser list.
+
+# Browser and filters
+
+The preset list is clickable. Clicking a preset loads it immediately.
+
+Use search to match preset names, descriptions, tags, or source labels. Tag buttons filter the list to one preset family.
+
+# Import and export
+
+`Import JSON` accepts either one preset or a full preset collection.
+
+`Export Selected` downloads only the selected preset.
+
+`Export Collection` downloads all user presets as one collection file.
 
 # Import and migration
 

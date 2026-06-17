@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPreset, normalizePreset, parsePreset, serializePreset } from '../src/domain/presets.js';
+import { readFileSync } from 'node:fs';
+import {
+  createPreset,
+  createPresetCollection,
+  mergePresetLibraries,
+  normalizePreset,
+  normalizePresetCollection,
+  parsePreset,
+  parsePresetPayload,
+  serializePreset,
+} from '../src/domain/presets.js';
 import { createInitialState } from '../src/domain/state.js';
 
 const lut = {
@@ -24,6 +34,7 @@ test('createPreset captures render state, gradients, and editable LUT', () => {
 
   assert.equal(preset.version, 1);
   assert.equal(preset.name, 'Glass Water');
+  assert.deepEqual(preset.tags, []);
   assert.equal(preset.state.width, 1920);
   assert.equal(preset.state.height, 1080);
   assert.equal(preset.state.time, 12.5);
@@ -112,4 +123,43 @@ test('serializePreset and parsePreset round-trip normalized preset data', () => 
   const parsed = parsePreset(serializePreset(preset));
 
   assert.deepEqual(parsed, preset);
+});
+
+test('normalizePresetCollection supports legacy array storage', () => {
+  const preset = createPreset({ name: 'Legacy Array', state: createInitialState(), currentLut: lut });
+  const collection = normalizePresetCollection([preset]);
+
+  assert.equal(collection.name, 'Preset Collection');
+  assert.equal(collection.presets.length, 1);
+  assert.equal(collection.presets[0].id, 'legacy-array');
+});
+
+test('parsePresetPayload detects collection and single preset JSON', () => {
+  const preset = createPreset({ name: 'Payload Preset', state: createInitialState(), currentLut: lut });
+  const collectionPayload = parsePresetPayload(JSON.stringify(createPresetCollection({ name: 'Payloads', presets: [preset] })));
+  const presetPayload = parsePresetPayload(serializePreset(preset));
+
+  assert.equal(collectionPayload.type, 'collection');
+  assert.equal(collectionPayload.collection.presets[0].id, 'payload-preset');
+  assert.equal(presetPayload.type, 'preset');
+  assert.equal(presetPayload.preset.id, 'payload-preset');
+});
+
+test('mergePresetLibraries lets user presets override built-ins by id', () => {
+  const state = createInitialState();
+  const builtIn = createPreset({ name: 'Shared', description: 'built in', tags: ['starter'], state, currentLut: lut });
+  const user = createPreset({ name: 'Shared', description: 'user copy', tags: ['custom'], state, currentLut: lut });
+  const merged = mergePresetLibraries({ builtIn: [builtIn], user: [user] });
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].source, 'user');
+  assert.equal(merged[0].description, 'user copy');
+  assert.deepEqual(merged[0].tags, ['custom']);
+});
+
+test('built-in preset collection file normalizes successfully', () => {
+  const collection = normalizePresetCollection(JSON.parse(readFileSync('presets/builtin-presets.json', 'utf8')));
+
+  assert.ok(collection.presets.length >= 1);
+  assert.ok(collection.presets.every((preset) => preset.tags.length >= 1));
 });
