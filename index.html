@@ -8,12 +8,16 @@
 </head>
 <body>
   <aside class="panel">
-    <header>
-      <p class="eyebrow">Indexed field lab</p>
-      <h1>Visual Experiment</h1>
+    <header class="panel-head">
+      <div>
+        <p class="eyebrow">Indexed field lab</p>
+        <h1>Visual Experiment</h1>
+      </div>
+      <button id="enterPresentation" class="icon-button" type="button" title="Presentation mode" aria-label="Presentation mode">[]</button>
     </header>
 
     <nav class="tabs" aria-label="Panel sections">
+      <button class="tab-button" type="button" data-tab="presets">Presets</button>
       <button class="tab-button active" type="button" data-tab="render">Render</button>
       <button class="tab-button" type="button" data-tab="canvas">Canvas</button>
       <button class="tab-button" type="button" data-tab="grad1">Grad 1</button>
@@ -21,44 +25,117 @@
       <button class="tab-button" type="button" data-tab="lut">LUT</button>
     </nav>
 
+    <div class="tab-panel" id="presetsTab">
+      <section class="control-group">
+        <h2 data-wiki="presets">Preset</h2>
+        <label>
+          Name
+          <input id="presetName" type="text" value="Untitled Preset">
+        </label>
+        <button id="savePreset" type="button">Save Current</button>
+      </section>
+
+      <section class="control-group">
+        <h2 data-wiki="presets">Saved Presets</h2>
+        <label>
+          Preset
+          <select id="presetList"></select>
+        </label>
+        <div class="actions">
+          <button id="loadPreset" type="button">Load</button>
+          <button id="deletePreset" type="button">Delete</button>
+        </div>
+      </section>
+
+      <section class="control-group">
+        <h2 data-wiki="presets">File</h2>
+        <div class="actions">
+          <button id="exportPreset" type="button">Export JSON</button>
+          <button id="importPreset" type="button">Import JSON</button>
+        </div>
+        <input id="importPresetFile" class="hidden-file" type="file" accept="application/json,.json">
+        <p id="presetStatus" class="hint">No preset selected.</p>
+      </section>
+    </div>
+
     <div class="tab-panel active" id="renderTab">
       <section class="control-group">
-        <h2>Render</h2>
-        <label>
-          Time Speed <output id="timeScaleOut"></output>
+        <h2 data-wiki="render">Render</h2>
+        <label class="compact-slider">
+          <span>Time Speed</span>
           <input id="timeScale" type="range" min="0" max="400" value="100">
+          <output id="timeScaleOut"></output>
         </label>
-        <label>
-          Gradient Wrap
-          <select id="gradientWrapMode"></select>
+        <h2 class="subhead" data-wiki="render-palette">Wrap</h2>
+        <label class="compact-select">
+          <span>Palette Wrap</span>
+          <select id="paletteWrapMode"></select>
         </label>
-        <button id="toggleTime" type="button">Pause Time</button>
-        <button id="resetTime" type="button">Reset Time</button>
-        <button id="runGpuDiagnostics" type="button">GPU Diagnostics</button>
+        <label class="compact-select">
+          <span>Field Wrap</span>
+          <select id="fieldWrapMode"></select>
+        </label>
+        <div class="actions actions-three">
+          <button id="toggleTime" type="button">pause</button>
+          <button id="resetTime" type="button">reset</button>
+          <button id="runGpuDiagnostics" type="button">gpu-diag</button>
+        </div>
         <pre id="gpuDiagnostics" class="diagnostics">Diagnostics not run.</pre>
       </section>
 
       <section class="control-group">
-        <h2>Combine</h2>
-        <label>
+        <h2 data-wiki="render-combine">Combine</h2>
+        <label class="button-row-label">
           Operation
-          <select id="combine"></select>
+          <div class="button-row combine-row" id="combineOperations">
+            <button class="mode-button" type="button" data-combine-operation="xor">XOR</button>
+            <button class="mode-button" type="button" data-combine-operation="and">AND</button>
+            <button class="mode-button" type="button" data-combine-operation="or">OR</button>
+            <button class="mode-button" type="button" data-combine-operation="xnor">XNOR</button>
+            <button class="mode-button" type="button" data-combine-operation="nand">NAND</button>
+            <button class="mode-button" type="button" data-combine-operation="nor">NOR</button>
+            <button class="mode-button" type="button" data-combine-operation="add">ADD</button>
+            <button class="mode-button" type="button" data-combine-operation="sub">SUB</button>
+            <button class="mode-button" type="button" data-combine-operation="diff">DIFF</button>
+            <button class="mode-button" type="button" data-combine-operation="mul">MUL</button>
+            <button class="mode-button" type="button" data-combine-operation="min">MIN</button>
+            <button class="mode-button" type="button" data-combine-operation="max">MAX</button>
+          </div>
+        </label>
+        <label class="button-row-label">
+          Modifier
+          <div class="button-row modifier-row" id="combineModifiers">
+            <button class="mode-button" type="button" data-combine-modifier="none">None</button>
+            <button class="mode-button" type="button" data-combine-modifier="shiftB">Shift G2</button>
+            <button class="mode-button" type="button" data-combine-modifier="popcount">Popcount</button>
+            <button class="mode-button" type="button" data-combine-modifier="lowbit">Lowbit</button>
+            <button class="mode-button" type="button" data-combine-modifier="highbit">Highbit</button>
+          </div>
+        </label>
+        <label class="compact-slider">
+          <span>Bit Shift</span>
+          <input id="combineShift" type="range" min="0" max="8" step="1" value="1">
+          <output id="combineShiftOut"></output>
         </label>
       </section>
 
       <section class="control-group">
-        <h2>Palette</h2>
+        <h2 data-wiki="render-palette-controls">Palette</h2>
         <label>
           Palette
           <select id="palette"></select>
         </label>
-        <label>
-          Cycle Seconds <output id="cycleSecondsOut"></output>
+        <label class="compact-slider">
+          <span>Cycle Seconds</span>
           <input id="cycleSeconds" type="range" min="0" max="40" step="0.5" value="12">
+          <output id="cycleSecondsOut"></output>
         </label>
-        <label>
-          Offset <output id="paletteOffsetOut"></output>
+        <label class="compact-slider compact-slider-step">
+          <span>Offset</span>
+          <button id="paletteOffsetDown" class="gradient-step-button" type="button">-</button>
+          <button id="paletteOffsetUp" class="gradient-step-button" type="button">+</button>
           <input id="paletteOffset" type="range" min="0" max="255" value="0">
+          <output id="paletteOffsetOut"></output>
         </label>
         <button id="toggleAnimation" type="button">Pause Palette</button>
       </section>
@@ -71,7 +148,7 @@
 
     <div class="tab-panel" id="canvasTab">
       <section class="control-group">
-        <h2>Canvas</h2>
+        <h2 data-wiki="canvas">Canvas</h2>
         <label>
           Value Depth
           <select id="valueBits">
@@ -91,22 +168,39 @@
           Height
           <input id="height" type="number" min="16" max="8192" step="16" value="768">
         </label>
-        <button id="applySize" type="button">Apply Size</button>
-        <button id="resetView" type="button">Reset View</button>
+        <div class="actions actions-three">
+          <button id="applySize" type="button">Apply Size</button>
+          <button id="useWindowSize" type="button">Use Window</button>
+          <button id="resetView" type="button">Reset View</button>
+        </div>
       </section>
     </div>
 
     <div class="tab-panel" id="grad1Tab">
+      <section class="control-group">
+        <h2 data-wiki="gradient-preview">Preview</h2>
+        <label class="toggle-control">
+          <input id="previewGradient1" type="checkbox">
+          Show Grad 1 only
+        </label>
+      </section>
       <section class="control-group gradient-panel" id="gradient1Panel"></section>
     </div>
 
     <div class="tab-panel" id="grad2Tab">
+      <section class="control-group">
+        <h2 data-wiki="gradient-preview">Preview</h2>
+        <label class="toggle-control">
+          <input id="previewGradient2" type="checkbox">
+          Show Grad 2 only
+        </label>
+      </section>
       <section class="control-group gradient-panel" id="gradient2Panel"></section>
     </div>
 
     <div class="tab-panel" id="lutTab">
       <section class="control-group">
-        <h2>LUT Definition</h2>
+        <h2 data-wiki="lut-definition">LUT Definition</h2>
         <label>
           ID
           <input id="lutId" type="text" value="custom-lut">
@@ -119,27 +213,12 @@
       </section>
 
       <section class="control-group">
-        <h2>Generate LUT</h2>
+        <h2 data-wiki="lut-generator">Generate LUT</h2>
         <label>
           Generator
-          <select id="lutGenerator">
-            <option value="harmony">Harmony</option>
-            <option value="waves">HSV Waves</option>
-            <option value="bit">Bit Pattern</option>
-            <option value="walk">Random Walk</option>
-            <option value="physical">Physical Preset</option>
-            <option value="seamless">Seamless Cycle</option>
-            <option value="mirror">Mirror / Symmetry</option>
-            <option value="bitplane">Bitplane</option>
-            <option value="bands">Bands / Posterize</option>
-            <option value="scientific">Scientific Diverging</option>
-            <option value="luminance">Luminance Controlled</option>
-            <option value="colorRamp">Color Ramp</option>
-            <option value="chaos">Chaos Map</option>
-            <option value="fourier">Fourier Waves</option>
-            <option value="ease">Ease Curve</option>
-          </select>
+          <select id="lutGenerator"></select>
         </label>
+        <button id="lutGeneratorHelp" class="context-help-button" type="button">?</button>
         <label>
           Seed
           <input id="lutSeed" type="number" min="0" max="999999" step="1" value="1337">
@@ -167,7 +246,7 @@
       </section>
 
       <section class="control-group point-editor" id="pointEditor">
-        <h2>Selected Point</h2>
+        <h2 data-wiki="lut-editor">Selected Point</h2>
         <label>
           Index
           <input id="pointIndex" type="number" min="0" max="255" step="1" value="0">
@@ -194,12 +273,25 @@
   </aside>
 
   <main class="stage">
+    <button id="presentationExit" class="presentation-exit" type="button" title="Exit presentation" aria-label="Exit presentation">[]</button>
     <div class="viewport" id="viewport">
       <canvas id="canvas"></canvas>
     </div>
+    <section class="wiki-panel" id="wikiPanel" aria-label="Wiki help" hidden>
+      <div class="wiki-panel-head">
+        <div>
+          <p class="eyebrow">Context wiki</p>
+          <h2 data-wiki-title>Wiki</h2>
+          <p class="wiki-summary" data-wiki-summary></p>
+        </div>
+        <button class="wiki-close" type="button" data-wiki-close aria-label="Close wiki">x</button>
+      </div>
+      <article class="wiki-body" data-wiki-body></article>
+      <div class="wiki-related" data-wiki-related></div>
+    </section>
     <section class="lut-dock" id="lutDock" aria-label="LUT editor">
       <div class="lut-dock-head">
-        <h2>LUT Editor</h2>
+        <h2 data-wiki="lut-editor">LUT Editor</h2>
         <p class="hint">Click the bar to add a smooth point. Drag markers to move them. Click a marker to edit it.</p>
         <div class="actions">
           <button id="addSmoothPoint" type="button">Add Smooth</button>

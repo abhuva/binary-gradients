@@ -18,14 +18,22 @@ https://abhuva.github.io/binary-gradients/
 
 ## Repository Shape
 
-Main files:
+Main files and module groups:
 
 - `index.html`: static UI shell for tabs, panels, render stage, and LUT dock.
 - `styles.css`: compact square-corner dev-tool styling.
-- `src/app.js`: all current runtime state, UI wiring, WebGL setup, shader source, LUT editing, viewport pan/zoom, and diagnostics.
+- `src/app.js`: composition root; owns app state, event orchestration, animation timing, render snapshots, and module wiring.
+- `src/domain/`: pure registries, initial state, value-range helpers, color helpers, and random/ID helpers.
+- `src/lut/`: built-in LUTs, editable LUT model/export logic, and LUT generators.
+- `src/render/`: shader contract, shader source, WebGL2 renderer, LUT texture upload, and GPU diagnostics.
+- `src/ui/`: DOM binding, gradient controls, LUT editor canvas/markers, and viewport pan/zoom.
+- `tests/`: dependency-free Node tests for pure modules and shader/registry contracts.
+- `package.json`: marks the repo as ES modules for Node validation and exposes `npm test`; no dependencies are declared.
 - `.github/workflows/pages.yml`: GitHub Pages deployment workflow.
 - `docs/architecture.md`: detailed architecture notes.
 - `docs/history-and-sources.md`: historical/research background.
+- `docs/refactor-plan.md`: modular architecture refactor plan and completed extraction checklist.
+- `docs/wiki/`: in-app context wiki articles loaded from the browser through a static manifest.
 - `docs/agent-handoff.md`: older handoff notes; useful, but check against current code before relying on paths or UI details.
 
 ## Current Architecture Baseline
@@ -43,16 +51,21 @@ UI state
 
 There is no CPU renderer. This is intentional because high resolutions and larger value ranges are impractical on CPU.
 
-`src/app.js` is currently monolithic. Do not split it opportunistically. A future split could be useful if changes become large enough, likely around:
+The runtime now uses native ES modules. Preserve the separation:
 
 ```text
-state
-controls/ui
-webgl/shader
-lut
-viewport
-export/diagnostics
+src/app.js       -> composition and orchestration
+src/domain/*    -> pure domain data/helpers
+src/lut/*       -> LUT model/generators
+src/render/*    -> WebGL/shader ownership
+src/ui/*        -> DOM interaction and pointer UI
 ```
+
+Do not move domain logic back into `src/app.js`. Prefer adding new gradients, combines, controls, or LUT behavior in the owning module and only wiring the user interaction in `src/app.js`.
+
+Preset serialization lives in `src/domain/presets.js`. Browser storage, file import/export, and UI wiring stay in `src/app.js`.
+
+Wiki article loading and parsing lives in `src/wiki/`. The stage overlay UI lives in `src/ui/wiki-panel.js`.
 
 ## Runtime State
 
@@ -69,10 +82,15 @@ state = {
   time,
   timeScale,
   timeRunning,
+  activeTab,
   previewMode,
+  gradientPreviewEnabled,
   gradients: [gradient1, gradient2],
-  combine,
-  gradientWrapMode,
+  combineOperation,
+  combineModifier,
+  combineShift,
+  fieldWrapMode,
+  paletteWrapMode,
   paletteId,
   paletteOffset,
   paletteCycleDirection,
@@ -99,17 +117,86 @@ The app clamps active value depth to `gl.MAX_TEXTURE_SIZE` if needed.
 Current gradient types:
 
 ```text
-horizontal
-vertical
-diagonal
+linear
 rings
-diamond
-box
+square
 fan
-xorCoord
+bitwiseCoord
+modulo
+polar
+voronoi
 plasma
 noise
 ```
+
+`linear` covers horizontal, vertical, and diagonal gradients through its `angle` parameter:
+
+```text
+0 deg  -> horizontal
+90 deg -> vertical
+45 deg -> diagonal
+```
+
+`square` covers box and diamond-style fields through its `angle` parameter:
+
+```text
+0 deg  -> axis-aligned box
+45 deg -> diamond orientation
+```
+
+`voronoi` is a procedural hash-grid Voronoi field with:
+
+```text
+Cell ID      -> nearest cell ID
+Distance     -> distance to nearest point
+Edge / Ridge -> edge/ridge value from F2-F1
+
+Euclidean
+Manhattan
+Chebyshev
+```
+
+`modulo` is a stripe/modulo field with:
+
+```text
+Linear Stripes      -> rotated linear stripes
+Grid Sum            -> summed grid/diagonal stripes
+Coefficient Formula -> floor(x) * X Mult + floor(y) * Y Mult
+```
+
+`polar` is an angular/radial field with:
+
+```text
+Spiral
+Angular Stripes
+Polar Checker
+```
+
+`bitwiseCoord` replaces the old single `X XOR Y` field with dropdown modes:
+
+```text
+XOR
+AND
+OR
+XNOR
+NAND
+NOR
+Add Shift
+XOR Shift
+AND Shift
+OR Shift
+Popcount XOR
+Popcount AND
+Popcount OR
+Lowbit XOR
+Lowbit AND
+Lowbit OR
+Highbit XOR
+Highbit AND
+Highbit OR
+```
+
+Shift modes use `x` with `y << Bit Shift` masked to the active value depth. Popcount modes scale the set-bit count across the active value range. Lowbit/highbit modes return the lowest or highest set bit in the selected bitwise expression.
 
 Each gradient stores a full parameter object. Not every type uses every parameter.
 
@@ -117,21 +204,36 @@ Common controls:
 
 - `offset`
 - `offsetSpeed`
-- `scale`, except Plasma does not show scale because it has no effect there.
+- `scale`, except Plasma and Fan do not show scale because it has no effect there.
 
 Type-specific controls are defined in `SPECIFIC_CONTROLS`.
 
-Gradient controls are generated dynamically in `renderGradientPanel()` and `createGradientControl()`. Range controls in Grad 1/2 use compact single-line rows: label, slider, value, and for `Offset Speed` a `0` snap button.
+Gradient controls support range sliders by default and dropdowns through metadata:
+
+```js
+{ key, label, type: 'select', options: { value: 'Label' } }
+```
+
+Use dropdowns for discrete modes; do not expose mode numbers as sliders.
+
+Gradient controls are generated dynamically in `renderGradientPanel()` and `createGradientControl()`. Range controls in Grad 1/2 use compact single-line rows: label, slider, value, and for offset `Speed` a `0` snap button.
+
+Every generated gradient slider has compact `-` / `+` buttons that step by the slider's configured step size. Select controls do not get step buttons. The linear `Angle` control additionally has quick-set buttons for `90`, `180`, and `270`.
+
+Generated gradient dropdown rows use a wider select column so closed dropdown text remains readable.
 
 ## Shader Mapping Rules
 
-The shader source lives inside `initWebGl()` in `src/app.js`.
+The shader source lives in `src/render/shader-source.js`. The WebGL lifecycle lives in `src/render/webgl-renderer.js`.
 
 Keep JS registries and shader branches synchronized:
 
-- `FIELD_TYPES` / `FIELD_IDS` maps to `fieldValue()` numeric branches.
-- `COMBINE_TYPES` / `COMBINE_IDS` maps to `combineValues()` numeric branches.
-- `GRADIENT_WRAP_TYPES` / `GRADIENT_WRAP_INDEX` maps to `wrapValue()` behavior.
+- `FIELD_TYPES` / `FIELD_SHADER_IDS` maps to `fieldValue()` numeric branches.
+- `COMBINE_OPERATION_TYPES` / `COMBINE_OPERATION_SHADER_IDS` maps to `combineBaseValues()` numeric branches.
+- `COMBINE_MODIFIER_TYPES` / `COMBINE_MODIFIER_SHADER_IDS` maps to `combineValues()` modifier behavior.
+- `GRADIENT_WRAP_TYPES` / `GRADIENT_WRAP_SHADER_IDS` maps to field and palette wrap mode uniforms.
+
+Gradient uniform array ownership is explicit in `src/render/shader-contract.js` through `GRADIENT_UNIFORM_LENGTH`, `GRADIENT_UNIFORM_SLOTS`, and `packGradientUniforms()`.
 
 Important WebGL details already handled:
 
@@ -141,12 +243,24 @@ Important WebGL details already handled:
 
 ## Combine Modes
 
-Current combine modes:
+`Render > Combine` uses two button rows instead of a dropdown:
+
+```text
+Operation -> XOR, AND, OR, XNOR, NAND, NOR, ADD, SUB, DIFF, MUL, MIN, MAX
+Modifier  -> None, Shift Grad 2, Popcount, Lowbit, Highbit
+```
+
+The operation combines Grad 1 and Grad 2. `Shift Grad 2` applies `(Grad 2 << Combine Shift) & valueMask` before the operation. `Popcount`, `Lowbit`, and `Highbit` transform the operation result. Popcount is scaled across the active value range so it remains visible with LUTs.
+
+Legacy/current operation IDs:
 
 ```text
 xor
 and
 or
+xnor
+nand
+nor
 add
 sub
 diff
@@ -155,16 +269,22 @@ min
 max
 ```
 
-Adding a combine mode requires both JS registry changes and a shader branch.
+Adding a combine operation or modifier requires both JS registry changes and shader behavior.
 
-## Gradient Wrap And Palette Cycling
+## Field Wrap And Palette Wrap
 
-`Render > Gradient Wrap` currently supports:
+`Render > Field Wrap` controls how raw scalar gradient values are folded before Grad 1 and Grad 2 are combined. This affects pattern geometry.
+
+`Render > Palette Wrap` controls how the final combined value plus palette offset indexes the LUT. This affects color traversal.
+
+`Render > Palette > Offset` has compact `-` / `+` buttons that step the palette offset by the slider step. The buttons use wrapped offset math, so decreasing below zero wraps to the active value mask.
+
+Both wrap controls currently support:
 
 - `Loop / saw`: values wrap from the high end back to zero.
 - `Ping-pong`: values bounce between zero and max.
 
-Palette cycling also follows this mode:
+Palette cycling follows `paletteWrapMode`:
 
 - In loop mode, `paletteOffset` wraps normally.
 - In ping-pong mode, `paletteOffset` moves `0 -> max -> 0`, and the visible Offset slider moves back and forth.
@@ -214,7 +334,9 @@ The LUT side panel includes first-slice automatic generators:
 - `Fourier Waves`: multi-harmonic color waves.
 - `Ease Curve`: linear/smooth/exponential/log/pulse/stepped ramps.
 
-Generator controls are intentionally compact: generator type, seed, base hue, detail, contrast, generate, and random seed. Generator-specific controls render dynamically below the common controls and regenerate live when changed. Base hue, detail, and contrast also regenerate live; seed only changes through `Generate` or `Random Seed`. Generators replace the current LUT with editable points and use the existing `buildLut()` path. They do not create hidden raw LUT textures.
+Generator controls are intentionally compact: generator type, seed, base hue, detail, contrast, generate, and random seed. Generator-specific controls render dynamically below the common controls and regenerate live when changed. Base hue, detail, and contrast also regenerate live; seed only changes through `Generate` or `Random Seed`. Generators replace the current LUT with editable points and use the `buildLut()` path from `src/lut/model.js`. They do not create hidden raw LUT textures.
+
+The LUT generator dropdown has a small right-aligned contextual `?` help button below it. The button opens `lut-generator-${generatorId}`, so every key in `LUT_GENERATOR_TYPES` must have a matching article in `docs/wiki/index.json`.
 
 LUT edits update the renderer in realtime when:
 
@@ -242,11 +364,29 @@ Exported LUT JSON is normalized as:
 
 At render time, the current LUT is built into RGB data and scaled to a GPU texture with width `state.valueRange`.
 
+## Preset System
+
+Presets are versioned snapshots of the current visual recipe:
+
+```text
+canvas size/value depth
+render timing and palette cycling settings
+combine operation/modifier settings
+Grad 1 and Grad 2 full gradient definitions
+current editable LUT definition
+current animation time
+```
+
+Presets intentionally do not store runtime/device state, active tab, gradient preview toggles, viewport pan/zoom, or presentation mode.
+
+The Presets tab saves presets to browser `localStorage` under `binary-gradients.presets.v1`. It also supports JSON export/import for moving presets between browsers or machines. Imported presets are normalized through `normalizePreset()` before storage or load.
+
 ## UI Contracts
 
 Current tabs:
 
 ```text
+Presets
 Render
 Canvas
 Grad 1
@@ -259,12 +399,18 @@ Preview behavior:
 ```text
 Render -> final combined result
 Canvas -> final combined result
-Grad 1 -> gradient 1 only
-Grad 2 -> gradient 2 only
+Grad 1 -> final combined result by default; gradient 1 only when its preview toggle is enabled
+Grad 2 -> final combined result by default; gradient 2 only when its preview toggle is enabled
 LUT -> final combined result
 ```
 
-The stage supports wheel zoom and drag pan.
+`state.previewMode` is derived from `state.activeTab` and `state.gradientPreviewEnabled` through `previewModeForActiveTab()`. Do not make Grad 1 / Grad 2 tab activation implicitly change to individual-preview mode.
+
+The stage supports wheel zoom and drag pan. Viewport zoom/pan persists across tab switches; only explicit Reset View, canvas size changes, initial load, and window resize should recenter the canvas.
+
+The Canvas tab `Use Window` button copies the current browser window `innerWidth` and `innerHeight` into the canvas size fields, applies them, and recenters the viewport. This is a convenience for setting render dimensions; it is not presentation/fullscreen mode.
+
+Presentation mode is entered through the small button in the left-panel title area. It hides the UI, disables viewport interaction, and fits the existing canvas uniformly inside the browser window without changing render dimensions or distorting pixels. It exits on any key or through the floating top-left button. That floating button appears on mouse movement and hides again after roughly two seconds of no mouse movement.
 
 The UI style should remain compact, square-cornered, and tool-like:
 
@@ -272,6 +418,21 @@ The UI style should remain compact, square-cornered, and tool-like:
 - No decorative marketing layout.
 - Pixelated canvas rendering.
 - Small but readable controls.
+- Render-tab sliders use compact single-line rows where practical.
+
+## Context Wiki
+
+The in-app wiki is a static, dependency-free help/education system:
+
+- Section headers use `data-wiki="article-id"`.
+- `src/ui/wiki-panel.js` decorates those headers with compact `?` buttons.
+- Clicking a `?` opens a stage overlay while keeping the left panel visible.
+- Article files live under `docs/wiki/`.
+- `docs/wiki/index.json` maps article IDs to markdown files because static browser JavaScript cannot list directories.
+- Markdown files use simple frontmatter with fields like `id`, `title`, `summary`, `section`, and `related`.
+- `src/wiki/frontmatter.js`, `src/wiki/markdown.js`, and `src/wiki/wiki-loader.js` intentionally implement a small controlled subset instead of adding a markdown/YAML dependency.
+
+When adding a UI section, add a `data-wiki` article ID to its heading and create/update the corresponding article and manifest entry.
 
 ## Deployment
 
@@ -314,6 +475,18 @@ For JS syntax validation:
 node --check src/app.js
 ```
 
+For all module and test syntax validation:
+
+```powershell
+Get-ChildItem -Recurse src,tests -Filter *.js | ForEach-Object { node --check $_.FullName }
+```
+
+For automated tests:
+
+```powershell
+npm test
+```
+
 For whitespace/diff validation before commit:
 
 ```powershell
@@ -346,7 +519,7 @@ Invoke-WebRequest -Uri 'https://abhuva.github.io/binary-gradients/src/app.js' -U
 - LUT texture width is limited by `gl.MAX_TEXTURE_SIZE`.
 - Value depth is restricted to `8..13` bits.
 - Shader integer operations assume power-of-two value ranges.
-- `src/app.js` is monolithic; keep changes focused until a refactor is justified.
+- `src/app.js` is the composition root; keep changes focused and preserve module boundaries.
 
 ## Current Non-Goals
 

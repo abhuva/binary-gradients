@@ -17,6 +17,13 @@ Prefer gradient types that produce clear integer structure and interact interest
 
 ## 1. Cell / Voronoi Gradients
 
+First slice implemented:
+
+- `voronoi` field type.
+- Hash-grid pseudo-points, no point arrays or data textures.
+- Modes: nearest-cell ID, distance to nearest point, edge/ridge from nearest-vs-second-nearest distance.
+- Metrics: Euclidean, Manhattan, Chebyshev.
+
 Generate integer fields from nearest points.
 
 Possible modes:
@@ -43,13 +50,19 @@ Likely controls:
 - scale
 - border emphasis
 
-Implementation notes:
+Remaining implementation notes:
 
-- A first shader version can use a small fixed point count or hash-grid pseudo-points.
+- The first shader version uses hash-grid pseudo-points and a fixed 3x3 neighbor search.
 - Full arbitrary point arrays would need uniform arrays or texture data and should wait until needed.
-- Hash-grid Voronoi is probably the best first slice because it stays procedural and does not add data plumbing.
+- Future versions could add richer cell coloring, animated jitter, or arbitrary point arrays if the procedural version is not enough.
 
 ## 2. Modulo / Stripe Families
+
+First slice implemented:
+
+- `modulo` field type.
+- Modes: rotated linear stripes, summed grid/diagonal stripes, coefficient formula.
+- Controls: modulo count, X/Y coefficients, angle, rotation speed.
 
 Explicit integer pattern generators based on coordinate formulas.
 
@@ -77,13 +90,19 @@ Likely controls:
 - angle
 - phase / offset speed
 
-Implementation notes:
+Remaining implementation notes:
 
-- Cheap in shader.
+- Current first slice is cheap in shader and uses only formulas.
 - Very good for testing combine modes because the source structure is obvious.
-- Could be one `modulo` gradient type with several submodes.
+- Future UI work could replace numeric mode sliders with named select controls.
 
 ## 3. Polar / Angular Families
+
+First slice implemented:
+
+- `polar` field type.
+- Modes: spiral, angular stripes, polar checker.
+- Controls: origin, angular frequency, radial frequency, twist, rotation speed.
 
 The current `fan` gradient already uses angle, but polar gradients can go further.
 
@@ -111,11 +130,11 @@ Likely controls:
 - rotation speed
 - radius scale
 
-Implementation notes:
+Remaining implementation notes:
 
-- `spiral` is a high-value first addition.
-- Polar checker is especially interesting with LUT cycling and bitwise combines.
+- `spiral` and polar checker are included in the first slice.
 - Reuse existing origin controls where possible.
+- Future versions could add logarithmic spiral behavior or source-specific phase controls.
 
 ## 4. Distance Field Shapes
 
@@ -124,8 +143,7 @@ Signed or unsigned distance fields from primitive shapes.
 Shape candidates:
 
 - circle
-- box
-- diamond
+- square
 - line
 - capsule
 - triangle-ish approximation
@@ -149,7 +167,7 @@ Likely controls:
 
 Implementation notes:
 
-- Current `rings`, `box`, and `diamond` are already simple distance-field variants.
+- Current `rings` and `square` are already simple distance-field variants.
 - A generalized shape-distance type could unify or extend them later.
 - Avoid overbuilding shape composition until one-shape fields prove useful.
 
@@ -261,7 +279,14 @@ Implementation notes:
 
 ## 8. Bitwise Coordinate Fields
 
-The current `X XOR Y` can become a full bitwise-coordinate family.
+First slice implemented:
+
+- `bitwiseCoord` field type replacing the old single `X XOR Y` field.
+- Dropdown mode selector, not a numeric mode slider.
+- Modes: XOR, AND, OR, XNOR, NAND, NOR, Add Shift, XOR Shift, AND Shift, OR Shift, Popcount XOR/AND/OR, Lowbit XOR/AND/OR, Highbit XOR/AND/OR.
+- Controls: coordinate scale, bit shift, operation mode.
+
+The old `X XOR Y` field is now mode `XOR` inside the full bitwise-coordinate family.
 
 Examples:
 
@@ -269,10 +294,15 @@ Examples:
 x & y
 x | y
 x ^ y
+~(x ^ y)
+~(x & y)
+~(x | y)
 x + (y << k)
+popcount(x ^ y)
 popcount(x & y)
-lowest set bit
-highest set bit
+popcount(x | y)
+lowest set bit of x/y expression
+highest set bit of x/y expression
 ```
 
 Useful visual results:
@@ -290,11 +320,11 @@ Likely controls:
 - mask depth
 - optional coordinate offset
 
-Implementation notes:
+Remaining implementation notes:
 
 - This is one of the most project-specific directions.
-- Recommended additions: `x&y`, `x|y`, and `popcount` first.
-- Could become one `bitwiseCoord` type with a submode selector, or separate types if simpler.
+- The second slice now covers complement, shifted, popcount, lowbit, and highbit variants.
+- Future versions could add coordinate offsets, mask-depth controls, channel-swizzled coordinates, or explicit bitplane slicing.
 
 ## 9. Quantized Noise Families
 
@@ -434,10 +464,10 @@ Implementation notes:
 
 Highest payoff without major architecture changes:
 
-1. `spiral`
+1. richer `polar` variants
 2. `checker`
-3. `voronoi`
-4. bitwise coordinate additions: `x&y`, `x|y`, `popcount`
+3. richer `voronoi` variants
+4. bitwise coordinate additions: complements, shifts, popcount, lowbit, highbit
 5. `interference`
 
 Why this order:
@@ -453,7 +483,7 @@ Why this order:
 - Keep each new gradient as a normal integer/scalar field that can be previewed in `Grad 1` / `Grad 2`.
 - Prefer cheap shader formulas first.
 - Reuse existing control metadata patterns in `SPECIFIC_CONTROLS`.
-- Keep `FIELD_TYPES`, `FIELD_IDS`, and shader `fieldValue()` branch ordering synchronized.
+- Keep `FIELD_TYPES`, `FIELD_SHADER_IDS`, and shader `fieldValue()` branches synchronized.
 - Avoid adding external data/state until pure procedural options are exhausted.
 - Run `node --check src/app.js` after shader/UI changes.
 - Use the Render tab `GPU Diagnostics` button when shader output is black or compilation fails.
