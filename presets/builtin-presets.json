@@ -109,7 +109,7 @@
         ]
       },
       "lut": {
-        "id": "physical-540770",
+        "id": "physical-cellular-sierpinsky",
         "length": 256,
         "points": [
           {
@@ -751,7 +751,7 @@
         ]
       },
       "lut": {
-        "id": "physical-540770",
+        "id": "physical-noise-and-circles",
         "length": 256,
         "points": [
           {
@@ -892,7 +892,7 @@
         ]
       },
       "lut": {
-        "id": "physical-540770",
+        "id": "physical-noise-and-circles-2",
         "length": 256,
         "points": [
           {
@@ -1207,12 +1207,17 @@
         ]
       }
     },
-      {
+    {
       "version": 1,
       "id": "ring-xor-spectral",
       "name": "Ring XOR Spectral",
       "description": "A clean starter setup: circular rings combined with a linear field through XOR.",
-      "tags": ["starter", "rings", "xor", "animated"],
+      "tags": [
+        "starter",
+        "rings",
+        "xor",
+        "animated"
+      ],
       "author": "built-in",
       "createdAt": "2026-06-17T00:00:00.000Z",
       "app": "binary-gradients",
@@ -1235,21 +1240,104 @@
         "cycleSeconds": 12,
         "paletteRunning": true,
         "gradients": [
-          { "type": "rings", "scale": 12, "offset": 0, "offsetSpeed": 8, "angle": 0, "rotationSpeed": 0, "originX": 0.5, "originY": 0.5, "originAmpX": 0.04, "originAmpY": 0.03, "originSpeedX": 0.37, "originSpeedY": -0.29, "freq1": 12, "freq2": 24, "phaseSpeed": 0, "warp": 0, "seed": 1, "mode": 0, "metric": 0, "bitShift": 1, "count": 8, "xMult": 1, "yMult": 1 },
-          { "type": "linear", "scale": 14, "offset": 0, "offsetSpeed": -4, "angle": 24, "rotationSpeed": 0, "originX": 0.5, "originY": 0.5, "originAmpX": 0, "originAmpY": 0, "originSpeedX": 0, "originSpeedY": 0, "freq1": 12, "freq2": 24, "phaseSpeed": 0, "warp": 0, "seed": 1, "mode": 0, "metric": 0, "bitShift": 1, "count": 8, "xMult": 1, "yMult": 1 }
+          {
+            "type": "rings",
+            "scale": 12,
+            "offset": 0,
+            "offsetSpeed": 8,
+            "angle": 0,
+            "rotationSpeed": 0,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0.04,
+            "originAmpY": 0.03,
+            "originSpeedX": 0.37,
+            "originSpeedY": -0.29,
+            "freq1": 12,
+            "freq2": 24,
+            "phaseSpeed": 0,
+            "warp": 0,
+            "seed": 1,
+            "mode": 0,
+            "metric": 0,
+            "bitShift": 1,
+            "count": 8,
+            "xMult": 1,
+            "yMult": 1
+          },
+          {
+            "type": "linear",
+            "scale": 14,
+            "offset": 0,
+            "offsetSpeed": -4,
+            "angle": 24,
+            "rotationSpeed": 0,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0,
+            "originAmpY": 0,
+            "originSpeedX": 0,
+            "originSpeedY": 0,
+            "freq1": 12,
+            "freq2": 24,
+            "phaseSpeed": 0,
+            "warp": 0,
+            "seed": 1,
+            "mode": 0,
+            "metric": 0,
+            "bitShift": 1,
+            "count": 8,
+            "xMult": 1,
+            "yMult": 1
+          }
         ]
       },
       "lut": {
         "id": "spectral-cycle",
         "length": 256,
         "points": [
-          { "id": "p0", "index": 0, "color": "#00bfff", "kind": "smooth" },
-          { "id": "p1", "index": 43, "color": "#00ff80", "kind": "smooth" },
-          { "id": "p2", "index": 85, "color": "#ffff30", "kind": "smooth" },
-          { "id": "p3", "index": 128, "color": "#ff6030", "kind": "smooth" },
-          { "id": "p4", "index": 170, "color": "#ff40b0", "kind": "smooth" },
-          { "id": "p5", "index": 213, "color": "#7040ff", "kind": "smooth" },
-          { "id": "p6", "index": 255, "color": "#00bfff", "kind": "smooth" }
+          {
+            "id": "p0",
+            "index": 0,
+            "color": "#00bfff",
+            "kind": "smooth"
+          },
+          {
+            "id": "p1",
+            "index": 43,
+            "color": "#00ff80",
+            "kind": "smooth"
+          },
+          {
+            "id": "p2",
+            "index": 85,
+            "color": "#ffff30",
+            "kind": "smooth"
+          },
+          {
+            "id": "p3",
+            "index": 128,
+            "color": "#ff6030",
+            "kind": "smooth"
+          },
+          {
+            "id": "p4",
+            "index": 170,
+            "color": "#ff40b0",
+            "kind": "smooth"
+          },
+          {
+            "id": "p5",
+            "index": 213,
+            "color": "#7040ff",
+            "kind": "smooth"
+          },
+          {
+            "id": "p6",
+            "index": 255,
+            "color": "#00bfff",
+            "kind": "smooth"
+          }
         ]
       }
     },
@@ -1258,7 +1346,12 @@
       "id": "voronoi-glass",
       "name": "Voronoi Glass",
       "description": "Organic Voronoi distance mixed with plasma for a glassy water-like surface.",
-      "tags": ["voronoi", "organic", "plasma", "smooth"],
+      "tags": [
+        "voronoi",
+        "organic",
+        "plasma",
+        "smooth"
+      ],
       "author": "built-in",
       "createdAt": "2026-06-17T00:00:00.000Z",
       "app": "binary-gradients",
@@ -1281,19 +1374,92 @@
         "cycleSeconds": 18,
         "paletteRunning": true,
         "gradients": [
-          { "type": "voronoi", "scale": 18, "offset": 0, "offsetSpeed": 0, "angle": 0, "rotationSpeed": 4, "originX": 0.5, "originY": 0.5, "originAmpX": 0.03, "originAmpY": 0.02, "originSpeedX": 0.21, "originSpeedY": 0.17, "freq1": 12, "freq2": 24, "phaseSpeed": 0, "warp": 0, "seed": 42, "mode": 1, "metric": 0, "bitShift": 1, "count": 8, "xMult": 1, "yMult": 1 },
-          { "type": "plasma", "scale": 16, "offset": 0, "offsetSpeed": 3, "angle": 0, "rotationSpeed": 0, "originX": 0.5, "originY": 0.5, "originAmpX": 0, "originAmpY": 0, "originSpeedX": 0, "originSpeedY": 0, "freq1": 9, "freq2": 23, "phaseSpeed": 0.45, "warp": 2.4, "seed": 11, "mode": 0, "metric": 0, "bitShift": 1, "count": 8, "xMult": 1, "yMult": 1 }
+          {
+            "type": "voronoi",
+            "scale": 18,
+            "offset": 0,
+            "offsetSpeed": 0,
+            "angle": 0,
+            "rotationSpeed": 4,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0.03,
+            "originAmpY": 0.02,
+            "originSpeedX": 0.21,
+            "originSpeedY": 0.17,
+            "freq1": 12,
+            "freq2": 24,
+            "phaseSpeed": 0,
+            "warp": 0,
+            "seed": 42,
+            "mode": 1,
+            "metric": 0,
+            "bitShift": 1,
+            "count": 8,
+            "xMult": 1,
+            "yMult": 1
+          },
+          {
+            "type": "plasma",
+            "scale": 16,
+            "offset": 0,
+            "offsetSpeed": 3,
+            "angle": 0,
+            "rotationSpeed": 0,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0,
+            "originAmpY": 0,
+            "originSpeedX": 0,
+            "originSpeedY": 0,
+            "freq1": 9,
+            "freq2": 23,
+            "phaseSpeed": 0.45,
+            "warp": 2.4,
+            "seed": 11,
+            "mode": 0,
+            "metric": 0,
+            "bitShift": 1,
+            "count": 8,
+            "xMult": 1,
+            "yMult": 1
+          }
         ]
       },
       "lut": {
         "id": "blue-glass",
         "length": 256,
         "points": [
-          { "id": "p0", "index": 0, "color": "#020916", "kind": "smooth" },
-          { "id": "p1", "index": 64, "color": "#063d7a", "kind": "smooth" },
-          { "id": "p2", "index": 128, "color": "#1bb8cc", "kind": "smooth" },
-          { "id": "p3", "index": 192, "color": "#b7f3ff", "kind": "smooth" },
-          { "id": "p4", "index": 255, "color": "#020916", "kind": "smooth" }
+          {
+            "id": "p0",
+            "index": 0,
+            "color": "#020916",
+            "kind": "smooth"
+          },
+          {
+            "id": "p1",
+            "index": 64,
+            "color": "#063d7a",
+            "kind": "smooth"
+          },
+          {
+            "id": "p2",
+            "index": 128,
+            "color": "#1bb8cc",
+            "kind": "smooth"
+          },
+          {
+            "id": "p3",
+            "index": 192,
+            "color": "#b7f3ff",
+            "kind": "smooth"
+          },
+          {
+            "id": "p4",
+            "index": 255,
+            "color": "#020916",
+            "kind": "smooth"
+          }
         ]
       }
     },
@@ -1302,7 +1468,12 @@
       "id": "bitplane-crt",
       "name": "Bitplane CRT",
       "description": "A sharp bitwise coordinate field with an amber/green display palette.",
-      "tags": ["bitwise", "crt", "sharp", "retro"],
+      "tags": [
+        "bitwise",
+        "crt",
+        "sharp",
+        "retro"
+      ],
       "author": "built-in",
       "createdAt": "2026-06-17T00:00:00.000Z",
       "app": "binary-gradients",
@@ -1325,18 +1496,86 @@
         "cycleSeconds": 0,
         "paletteRunning": false,
         "gradients": [
-          { "type": "bitwiseCoord", "scale": 32, "offset": 0, "offsetSpeed": 0, "angle": 0, "rotationSpeed": 0, "originX": 0.5, "originY": 0.5, "originAmpX": 0, "originAmpY": 0, "originSpeedX": 0, "originSpeedY": 0, "freq1": 12, "freq2": 24, "phaseSpeed": 0, "warp": 0, "seed": 1, "mode": 0, "metric": 0, "bitShift": 3, "count": 8, "xMult": 1, "yMult": 1 },
-          { "type": "modulo", "scale": 18, "offset": 0, "offsetSpeed": 0, "angle": 90, "rotationSpeed": 0, "originX": 0.5, "originY": 0.5, "originAmpX": 0, "originAmpY": 0, "originSpeedX": 0, "originSpeedY": 0, "freq1": 12, "freq2": 24, "phaseSpeed": 0, "warp": 0, "seed": 1, "mode": 1, "metric": 0, "bitShift": 1, "count": 12, "xMult": 3, "yMult": 5 }
+          {
+            "type": "bitwiseCoord",
+            "scale": 32,
+            "offset": 0,
+            "offsetSpeed": 0,
+            "angle": 0,
+            "rotationSpeed": 0,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0,
+            "originAmpY": 0,
+            "originSpeedX": 0,
+            "originSpeedY": 0,
+            "freq1": 12,
+            "freq2": 24,
+            "phaseSpeed": 0,
+            "warp": 0,
+            "seed": 1,
+            "mode": 0,
+            "metric": 0,
+            "bitShift": 3,
+            "count": 8,
+            "xMult": 1,
+            "yMult": 1
+          },
+          {
+            "type": "modulo",
+            "scale": 18,
+            "offset": 0,
+            "offsetSpeed": 0,
+            "angle": 90,
+            "rotationSpeed": 0,
+            "originX": 0.5,
+            "originY": 0.5,
+            "originAmpX": 0,
+            "originAmpY": 0,
+            "originSpeedX": 0,
+            "originSpeedY": 0,
+            "freq1": 12,
+            "freq2": 24,
+            "phaseSpeed": 0,
+            "warp": 0,
+            "seed": 1,
+            "mode": 1,
+            "metric": 0,
+            "bitShift": 1,
+            "count": 12,
+            "xMult": 3,
+            "yMult": 5
+          }
         ]
       },
       "lut": {
         "id": "crt-amber-green",
         "length": 256,
         "points": [
-          { "id": "p0", "index": 0, "color": "#001000", "kind": "smooth" },
-          { "id": "p1", "index": 90, "color": "#145000", "kind": "smooth" },
-          { "id": "p2", "index": 160, "color": "#d08a1b", "kind": "smooth" },
-          { "id": "p3", "index": 255, "color": "#fff2a0", "kind": "smooth" }
+          {
+            "id": "p0",
+            "index": 0,
+            "color": "#001000",
+            "kind": "smooth"
+          },
+          {
+            "id": "p1",
+            "index": 90,
+            "color": "#145000",
+            "kind": "smooth"
+          },
+          {
+            "id": "p2",
+            "index": 160,
+            "color": "#d08a1b",
+            "kind": "smooth"
+          },
+          {
+            "id": "p3",
+            "index": 255,
+            "color": "#fff2a0",
+            "kind": "smooth"
+          }
         ]
       }
     }

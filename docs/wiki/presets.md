@@ -55,7 +55,7 @@ If a user preset has the same ID as a built-in preset, the user preset wins in t
 
 The preset list is clickable. Clicking a preset loads it immediately.
 
-Use search to match preset names, descriptions, tags, or source labels. Tag buttons filter the list to one preset family.
+Use search to match preset names, descriptions, tags, or source. Tag buttons filter the list to one preset family.
 
 # Import and export
 

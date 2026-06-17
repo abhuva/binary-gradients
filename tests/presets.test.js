@@ -138,11 +138,18 @@ test('parsePresetPayload detects collection and single preset JSON', () => {
   const preset = createPreset({ name: 'Payload Preset', state: createInitialState(), currentLut: lut });
   const collectionPayload = parsePresetPayload(JSON.stringify(createPresetCollection({ name: 'Payloads', presets: [preset] })));
   const presetPayload = parsePresetPayload(serializePreset(preset));
+  const legacyArrayPayload = parsePresetPayload(JSON.stringify([preset]));
 
   assert.equal(collectionPayload.type, 'collection');
   assert.equal(collectionPayload.collection.presets[0].id, 'payload-preset');
   assert.equal(presetPayload.type, 'preset');
   assert.equal(presetPayload.preset.id, 'payload-preset');
+  assert.equal(legacyArrayPayload.type, 'collection');
+  assert.equal(legacyArrayPayload.collection.presets[0].id, 'payload-preset');
+  assert.throws(() => parsePresetPayload('{bad'), SyntaxError);
+  assert.throws(() => parsePresetPayload(JSON.stringify({ name: 'Not enough' })), /state and lut/);
+  assert.throws(() => parsePresetPayload(JSON.stringify({ presets: 'bad' })), /presets array/);
+  assert.throws(() => parsePresetPayload(JSON.stringify(42)), /preset object or preset collection/);
 });
 
 test('mergePresetLibraries lets user presets override built-ins by id', () => {
@@ -159,7 +166,13 @@ test('mergePresetLibraries lets user presets override built-ins by id', () => {
 
 test('built-in preset collection file normalizes successfully', () => {
   const collection = normalizePresetCollection(JSON.parse(readFileSync('presets/builtin-presets.json', 'utf8')));
+  const lutPointSets = new Map();
 
   assert.ok(collection.presets.length >= 1);
   assert.ok(collection.presets.every((preset) => preset.tags.length >= 1));
+  collection.presets.forEach((preset) => {
+    const pointSet = JSON.stringify(preset.lut.points.map(({ index, color, kind }) => ({ index, color, kind })));
+    assert.ok(!lutPointSets.has(preset.lut.id) || lutPointSets.get(preset.lut.id) === pointSet, `${preset.lut.id} is reused for different point sets`);
+    lutPointSets.set(preset.lut.id, pointSet);
+  });
 });

@@ -123,11 +123,26 @@ export function serializePresetCollection(collection, maxTextureSize = Infinity)
 
 export function parsePresetPayload(json, maxTextureSize = Infinity) {
   const payload = JSON.parse(json);
-  if (payload && typeof payload === 'object' && Array.isArray(payload.presets)) {
+  if (Array.isArray(payload)) {
     return {
       type: 'collection',
       collection: normalizePresetCollection(payload, maxTextureSize),
     };
+  }
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Preset import payload must be a preset object or preset collection.');
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'presets')) {
+    if (!Array.isArray(payload.presets)) {
+      throw new Error('Preset collection payload must contain a presets array.');
+    }
+    return {
+      type: 'collection',
+      collection: normalizePresetCollection(payload, maxTextureSize),
+    };
+  }
+  if (!isPresetPayload(payload)) {
+    throw new Error('Preset payload must contain state and lut objects.');
   }
   return {
     type: 'preset',
@@ -200,6 +215,20 @@ function normalizePresetName(value) {
 
 function normalizePresetDescription(value) {
   return String(value || '').trim();
+}
+
+function isPresetPayload(value) {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && value.state
+    && typeof value.state === 'object'
+    && !Array.isArray(value.state)
+    && value.lut
+    && typeof value.lut === 'object'
+    && !Array.isArray(value.lut),
+  );
 }
 
 function normalizePresetTags(value) {
