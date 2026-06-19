@@ -12,7 +12,7 @@ related:
 
 Grad 1 and Grad 2 tabs normally show the final combined render. This keeps the canvas stable when switching tabs.
 
-Enabling `Show Grad only` switches that tab to the individual scalar field preview.
+Use the `P` button in the title bar to enable individual gradient preview. When enabled, Grad 1 shows only Gradient 1 and Grad 2 shows only Gradient 2. Other tabs still show the final combined render.
 
 # What the preview shows
 
@@ -31,4 +31,4 @@ Questions to ask:
 
 # Returning to final render
 
-Turn the preview toggle off to return that Grad tab to the final combined render.
+Turn the title-bar `P` button off to return the Grad tabs to the final combined render.

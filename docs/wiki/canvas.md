@@ -1,8 +1,8 @@
 ---
 id: canvas
-title: Canvas
+title: Set
 summary: Output resolution, value depth, viewport fitting, and why these are separate concepts.
-section: Canvas
+section: Set
 related:
   - render
   - lut-definition
@@ -10,7 +10,7 @@ related:
 
 # Canvas size
 
-Width and height define the actual render target size. A `1024 x 768` canvas computes 786432 pixels. A `1920 x 1080` canvas computes more than two million pixels.
+Width and height define the actual scalar field size. You can use any dimensions.
 
 This is separate from zoom. Zoom only changes how the canvas appears on screen. Canvas size changes what is rendered and what is exported.
 
@@ -42,3 +42,9 @@ The LUT texture is uploaded at the active value range width. If the GPU cannot s
 # Reset view
 
 `Reset View` recenters and fits the canvas in the stage. It does not change canvas size or render state.
+
+# GPU diagnostics
+
+`gpu-diag` runs a compact WebGL check. It reports renderer information, value depth, texture state, shader/program status, and a center-pixel readback.
+
+Use it when the canvas is black, frozen, or suspicious after changing shader-facing code. It is not a visual analysis tool; it is a sanity check that the GPU path is alive.

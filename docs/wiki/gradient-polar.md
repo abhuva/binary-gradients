@@ -20,6 +20,10 @@ radius = length(d) / scale
 
 This makes the field naturally radial.
 
+# Animated origin
+
+Use the `A` button on `Origin X` or `Origin Y` to reveal that axis animation controls. Moving the origin changes the pivot for spiral, angular stripe, and polar checker modes.
+
 # Spiral
 
 Spiral mode combines angle and radius:

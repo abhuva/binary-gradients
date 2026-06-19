@@ -47,8 +47,25 @@ export function createMainShaderSources() {
   float smoothCurve(float t) { return t * t * (3.0 - 2.0 * t); }
   vec2 smoothCurve(vec2 t) { return t * t * (3.0 - 2.0 * t); }
   float hash2(vec2 p, float seed) { return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 74.7) * 43758.5453); }
+  uint hashUint(uint value) {
+    value ^= value >> 16;
+    value *= 0x7feb352du;
+    value ^= value >> 15;
+    value *= 0x846ca68bu;
+    value ^= value >> 16;
+    return value;
+  }
+  float hashCellUint(ivec2 cell, int seed, uint salt) {
+    uint x = uint(cell.x) * 0x9e3779b9u;
+    uint y = uint(cell.y) * 0x85ebca6bu;
+    uint s = uint(seed) * 0xc2b2ae35u;
+    return float(hashUint(x ^ y ^ s ^ salt)) * (1.0 / 4294967295.0);
+  }
   vec2 hashCellPoint(vec2 cell, float seed) {
     return vec2(hash2(cell, seed), hash2(cell + vec2(19.19, 73.73), seed + 11.0));
+  }
+  vec2 stableHashCellPoint(ivec2 cell, int seed) {
+    return vec2(hashCellUint(cell, seed, 0x27d4eb2du), hashCellUint(cell, seed, 0x165667b1u));
   }
   float voronoiDistance(vec2 delta, int metric) {
     vec2 a = abs(delta);
@@ -98,7 +115,7 @@ export function createMainShaderSources() {
   }
 
   float fieldValue(int type, float g[${GRADIENT_UNIFORM_LENGTH}], vec2 pixel, vec2 uv) {
-    float scale = max(1.0, g[0]);
+    float scale = max(1.0, g[0] + sin(u_time * g[37]) * g[36]);
     float offset = g[1] + u_time * g[2];
     float ox = g[3] + sin(u_time * g[5]) * g[7];
     float oy = g[4] + sin(u_time * g[6]) * g[8];
@@ -117,7 +134,8 @@ export function createMainShaderSources() {
       value = floor(max(abs(q.x), abs(q.y)) / scale);
     }
     else if (type == ${FIELD_SHADER_IDS.fan}) {
-      float a = atan(d.y, d.x) + 3.14159265359 + radians(u_time * g[10]);
+      float fanDirection = g[33] < 0.0 ? -1.0 : 1.0;
+      float a = atan(d.y, d.x) * fanDirection + 3.14159265359 + radians(u_time * g[10]);
       value = floor((a / 6.28318530718) * u_valueRange * max(1.0, g[11]));
     }
     else if (type == ${FIELD_SHADER_IDS.bitwiseCoord}) {
@@ -181,40 +199,50 @@ export function createMainShaderSources() {
     else if (type == ${FIELD_SHADER_IDS.voronoi}) {
       vec2 p = (pixel + u_time * vec2(g[19], g[20]) * scale) / scale;
       vec2 baseCell = floor(p);
+      ivec2 baseCellId = ivec2(baseCell);
       vec2 local = fract(p);
-      float jitter = clamp(g[15], 0.0, 1.0);
+      float jitter = clamp(g[15] + sin(u_time * g[35]) * g[34], 0.0, 1.0);
+      int seed = int(floor(g[16] + 0.5));
       int metric = int(clamp(floor(g[22] + 0.5), 0.0, 2.0));
       float nearest = 9999.0;
       float second = 9999.0;
       float cellId = 0.0;
+      const float tieEpsilon = 0.000001;
       for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
           vec2 neighbor = vec2(float(x), float(y));
-          vec2 cell = baseCell + neighbor;
-          vec2 point = mix(vec2(0.5), hashCellPoint(cell, g[16]), jitter);
+          ivec2 cellIdValue = baseCellId + ivec2(x, y);
+          vec2 point = mix(vec2(0.5), stableHashCellPoint(cellIdValue, seed), jitter);
           vec2 delta = neighbor + point - local;
           float dist = voronoiDistance(delta, metric);
-          if (dist < nearest) {
+          float candidateCellId = hashCellUint(cellIdValue, seed, 0x94d049bbu);
+          bool closer = dist < nearest - tieEpsilon;
+          bool tiedCloser = abs(dist - nearest) <= tieEpsilon && candidateCellId < cellId;
+          if (closer || tiedCloser) {
             second = nearest;
             nearest = dist;
-            cellId = hash2(cell, g[16] + 31.0);
+            cellId = candidateCellId;
           } else if (dist < second) {
             second = dist;
           }
         }
       }
       int mode = int(clamp(floor(g[21] + 0.5), 0.0, 2.0));
-      if (mode == 1) value = floor(clamp(nearest * g[18], 0.0, 1.0) * (u_valueRange - 1.0));
-      else if (mode == 2) value = floor(clamp((second - nearest) * g[18], 0.0, 1.0) * (u_valueRange - 1.0));
+      float contrast = clamp(g[18] + sin(u_time * g[39]) * g[38], 0.0, 16.0);
+      if (mode == 1) value = floor(clamp(nearest * contrast, 0.0, 1.0) * (u_valueRange - 1.0));
+      else if (mode == 2) value = floor(clamp((second - nearest) * contrast, 0.0, 1.0) * (u_valueRange - 1.0));
       else value = floor(cellId * (u_valueRange - 1.0));
     }
     else if (type == ${FIELD_SHADER_IDS.plasma}) {
       float phase = u_time * g[14];
       vec2 c = uv - 0.5;
-      float warp = sin((uv.x + uv.y + phase * 0.05) * g[13]) * g[15] * 0.02;
-      float v = sin((uv.x + warp) * g[12] + phase)
-        + sin((uv.y - warp) * g[13] - phase * 0.7)
-        + sin(length(c) * (g[12] + g[13]) - phase * 0.45);
+      float freq1 = max(1.0, g[12] + sin(u_time * g[41]) * g[40]);
+      float freq2 = max(1.0, g[13] + sin(u_time * g[43]) * g[42]);
+      float warpAmount = max(0.0, g[15] + sin(u_time * g[45]) * g[44]);
+      float warp = sin((uv.x + uv.y + phase * 0.05) * freq2) * warpAmount * 0.02;
+      float v = sin((uv.x + warp) * freq1 + phase)
+        + sin((uv.y - warp) * freq2 - phase * 0.7)
+        + sin(length(c) * (freq1 + freq2) - phase * 0.45);
       value = floor((v / 3.0 * 0.5 + 0.5) * (u_valueRange - 1.0));
     }
     else if (type == ${FIELD_SHADER_IDS.noise}) {
@@ -227,7 +255,8 @@ export function createMainShaderSources() {
         sum += valueNoise(p * exp2(float(i)), g[16] + float(i) * 13.0) * amp;
         amp *= 0.5;
       }
-      value = floor(pow(clamp(sum * g[18], 0.0, 1.0), 1.2) * (u_valueRange - 1.0));
+      float noiseContrast = clamp(g[18] + sin(u_time * g[47]) * g[46], 0.0, 8.0);
+      value = floor(pow(clamp(sum * noiseContrast, 0.0, 1.0), 1.2) * (u_valueRange - 1.0));
     }
     return wrapFieldValue(value + offset);
   }

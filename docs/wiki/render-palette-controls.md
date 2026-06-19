@@ -1,8 +1,8 @@
 ---
 id: render-palette-controls
-title: Render > Palette
+title: Anim > Palette
 summary: Palette preset selection and LUT offset animation controls.
-section: Render
+section: Anim
 related:
   - render-palette
   - lut-definition
@@ -11,7 +11,7 @@ related:
 
 # What this section controls
 
-Render > Palette controls which LUT is used and how the final LUT lookup is offset over time.
+Anim > Palette controls which LUT is used and how the final LUT lookup is offset over time.
 
 This section does not edit LUT points. Editing happens in the LUT tab and LUT editor. Here you choose an available LUT and animate how the final values travel through it.
 
@@ -20,6 +20,10 @@ This section does not edit LUT points. Editing happens in the LUT tab and LUT ed
 `Palette` selects the active LUT definition. Built-in LUTs appear here, and custom LUTs appear after using `Apply LUT` in the LUT tab.
 
 Changing the selected palette can strongly change the image mood without changing the underlying scalar pattern.
+
+# Palette Wrap
+
+`Palette Wrap` controls how the final combined value plus Offset indexes the LUT. This is part of palette traversal, so it belongs with the palette controls rather than the scalar field controls.
 
 # Offset
 
@@ -41,9 +45,9 @@ When Palette Wrap is `Ping-pong`, one cycle means moving from the beginning to t
 
 Setting `Cycle Seconds` to `0` disables automatic palette cycling.
 
-# Pause Palette
+# Palette speed toggle
 
-`Pause Palette` stops the automatic offset animation. The current offset is preserved, so you can pause on a specific color phase and continue adjusting other controls.
+Use the `PS` button in the title bar to pause or resume automatic palette offset animation. The current offset is preserved, so you can pause on a specific color phase and continue adjusting other controls.
 
 # Difference from Field Wrap
 

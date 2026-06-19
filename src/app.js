@@ -57,6 +57,9 @@ let activePresetTag = 'all';
 let presetSearchTerm = '';
 let selectedPointId = currentLut.points[0]?.id ?? null;
 let lastTime = performance.now();
+let fpsSampleStart = lastTime;
+let fpsFrameCount = 0;
+let currentFps = 0;
 let renderQueued = false;
 let needsStaticRender = true;
 let viewportController = null;
@@ -95,6 +98,7 @@ wikiPanel = createWikiPanel({
 });
 wikiPanel.enhance(document);
 wireControls();
+syncGradientPreviewControl();
 renderGradientPanels();
 syncLutControls();
 setValueBits(state.valueBits);
@@ -139,12 +143,12 @@ function wireControls() {
   controls.exportPreset.addEventListener('click', exportSelectedPreset);
   controls.importPreset.addEventListener('click', () => controls.importPresetFile.click());
   controls.importPresetFile.addEventListener('change', importPresetFile);
-  controls.gradientPreviewToggles.forEach((toggle, index) => {
-    toggle.addEventListener('change', () => {
-      state.gradientPreviewEnabled[index] = toggle.checked;
-      syncPreviewMode();
-      requestRender();
-    });
+  controls.toggleGradientPreview.addEventListener('click', () => {
+    const enabled = !gradientPreviewEnabled();
+    state.gradientPreviewEnabled = [enabled, enabled];
+    syncPreviewMode();
+    syncGradientPreviewControl();
+    requestRender();
   });
   controls.combineOperationButtons.forEach((button) => {
     button.addEventListener('click', () => {
@@ -191,11 +195,7 @@ function wireControls() {
   });
   controls.toggleTime.addEventListener('click', () => {
     state.timeRunning = !state.timeRunning;
-    controls.toggleTime.textContent = state.timeRunning ? 'pause' : 'resume';
-  });
-  controls.resetTime.addEventListener('click', () => {
-    state.time = 0;
-    requestRender();
+    syncRuntimeToggleControls();
   });
   controls.runGpuDiagnostics.addEventListener('click', runGpuDiagnostics);
 
@@ -225,7 +225,7 @@ function wireControls() {
   controls.paletteOffsetUp.addEventListener('click', () => stepPaletteOffset(1));
   controls.toggleAnimation.addEventListener('click', () => {
     state.paletteRunning = !state.paletteRunning;
-    controls.toggleAnimation.textContent = state.paletteRunning ? 'Pause Palette' : 'Resume Palette';
+    syncRuntimeToggleControls();
   });
 
   controls.randomize.addEventListener('click', randomize);
@@ -234,7 +234,13 @@ function wireControls() {
   controls.lutId.addEventListener('input', () => {
     currentLut.id = sanitizeLutId(controls.lutId.value);
   });
-  controls.applyLutLength.addEventListener('click', applyLutLength);
+  controls.lutLength.addEventListener('change', applyLutLength);
+  document.querySelectorAll('[data-lut-length-preset]').forEach((button) => {
+    button.addEventListener('click', () => {
+      controls.lutLength.value = button.dataset.lutLengthPreset;
+      applyLutLength();
+    });
+  });
   controls.lutGenerator.addEventListener('change', () => {
     renderGeneratorParams();
     syncGeneratorHelp();
@@ -330,6 +336,7 @@ function saveCurrentPreset() {
     tags: controls.presetTags.value,
     state,
     currentLut,
+    fixedCanvasSize: controls.presetFixedCanvasSize.checked,
   });
   userPresets = upsertPreset(userPresets, preset);
   selectedPresetId = preset.id;
@@ -408,10 +415,13 @@ async function importPresetFile() {
 function applyPreset(rawPreset) {
   const preset = normalizePreset(rawPreset, presetMaxTextureSize());
   const presetState = preset.state;
-  state.width = presetState.width;
-  state.height = presetState.height;
-  controls.width.value = state.width;
-  controls.height.value = state.height;
+  const shouldResizeCanvas = presetState.fixedCanvasSize === true;
+  if (shouldResizeCanvas) {
+    state.width = presetState.width;
+    state.height = presetState.height;
+    controls.width.value = state.width;
+    controls.height.value = state.height;
+  }
   setValueBits(presetState.valueBits);
   state.time = presetState.time;
   state.timeScale = presetState.timeScale;
@@ -435,8 +445,10 @@ function applyPreset(rawPreset) {
 
   syncPaletteCycleDirection();
   uploadLutTexture();
-  resizeBuffers();
-  viewportController.reset();
+  if (shouldResizeCanvas) {
+    resizeBuffers();
+    viewportController.reset();
+  }
   renderGradientPanels();
   refreshPaletteSelect();
   syncControls();
@@ -503,9 +515,11 @@ function syncPresetSelection() {
     controls.presetName.value = preset.name;
     controls.presetTags.value = preset.tags.join(', ');
     controls.presetDescription.value = preset.description;
+    controls.presetFixedCanvasSize.checked = preset.state.fixedCanvasSize;
     setPresetStatus(`Selected "${preset.name}".`);
   } else {
     controls.deletePreset.disabled = true;
+    controls.presetFixedCanvasSize.checked = false;
     setPresetStatus(mergedPresets().length ? 'Select a preset.' : 'No presets available.');
   }
 }
@@ -609,6 +623,15 @@ function syncPreviewMode() {
   state.previewMode = previewModeForActiveTab(state.activeTab, state.gradientPreviewEnabled);
 }
 
+function gradientPreviewEnabled() {
+  return state.gradientPreviewEnabled.some(Boolean);
+}
+
+function syncGradientPreviewControl() {
+  controls.toggleGradientPreview.classList.toggle('active', gradientPreviewEnabled());
+  controls.toggleGradientPreview.setAttribute('aria-pressed', String(gradientPreviewEnabled()));
+}
+
 function setValueBits(bits) {
   const previousBits = state.valueBits;
   const maxTextureSize = renderer ? renderer.getMaxTextureSize() : Infinity;
@@ -683,7 +706,7 @@ function tick(now) {
 }
 
 function hasGradientAnimation() {
-  return state.gradients.some((g) => g.offsetSpeed || g.rotationSpeed || g.originSpeedX || g.originSpeedY || g.phaseSpeed || g.driftX || g.driftY);
+  return state.gradients.some((g) => g.offsetSpeed || g.rotationSpeed || g.originSpeedX || g.originSpeedY || g.phaseSpeed || g.driftX || g.driftY || g.jitterSpeed || g.scaleSpeed || g.contrastSpeed || g.freq1Speed || g.freq2Speed || g.warpSpeed || g.noiseContrastSpeed);
 }
 
 function advancePaletteCycle(dt) {
@@ -732,8 +755,18 @@ function requestRender() {
 
 function renderFrame() {
   needsStaticRender = false;
+  updateFps(performance.now());
   updateReadouts();
   renderer?.render(renderSnapshot());
+}
+
+function updateFps(now) {
+  fpsFrameCount += 1;
+  const elapsed = now - fpsSampleStart;
+  if (elapsed < 500) return;
+  currentFps = Math.round((fpsFrameCount * 1000) / elapsed);
+  fpsFrameCount = 0;
+  fpsSampleStart = now;
 }
 
 function renderSnapshot() {
@@ -970,19 +1003,27 @@ function syncControls() {
   controls.height.value = state.height;
   controls.paletteWrapMode.value = state.paletteWrapMode;
   controls.fieldWrapMode.value = state.fieldWrapMode;
-  controls.gradientPreviewToggles.forEach((toggle, index) => {
-    toggle.checked = state.gradientPreviewEnabled[index];
-  });
+  syncGradientPreviewControl();
   controls.palette.value = state.paletteId;
   controls.timeScale.value = Math.round(state.timeScale * 100);
-  controls.toggleTime.textContent = state.timeRunning ? 'pause' : 'resume';
   controls.valueBits.value = String(state.valueBits);
   controls.cycleSeconds.value = state.cycleSeconds;
   controls.paletteOffset.max = String(state.valueMask);
   controls.paletteOffset.value = Math.floor(state.paletteOffset);
-  controls.toggleAnimation.textContent = state.paletteRunning ? 'Pause Palette' : 'Resume Palette';
+  syncRuntimeToggleControls();
   syncCombineControls();
   updateReadouts();
+}
+
+function syncRuntimeToggleControls() {
+  controls.toggleTime.classList.toggle('active', state.timeRunning);
+  controls.toggleTime.setAttribute('aria-pressed', String(state.timeRunning));
+  controls.toggleTime.title = state.timeRunning ? 'Pause animation speed' : 'Resume animation speed';
+  controls.toggleTime.setAttribute('aria-label', controls.toggleTime.title);
+  controls.toggleAnimation.classList.toggle('active', state.paletteRunning);
+  controls.toggleAnimation.setAttribute('aria-pressed', String(state.paletteRunning));
+  controls.toggleAnimation.title = state.paletteRunning ? 'Pause palette speed' : 'Resume palette speed';
+  controls.toggleAnimation.setAttribute('aria-label', controls.toggleAnimation.title);
 }
 
 function syncCombineControls() {
@@ -1003,7 +1044,7 @@ function updateReadouts() {
   const preview = state.previewMode === 'final' ? 'FINAL' : state.previewMode.toUpperCase();
   const combineLabel = `${COMBINE_OPERATION_TYPES[state.combineOperation]}${state.combineModifier === 'none' ? '' : ` + ${COMBINE_MODIFIER_TYPES[state.combineModifier]}`}`;
   const zoom = viewportController?.view.scale ?? 1;
-  readout.textContent = `${state.width} x ${state.height} | ${state.valueBits}BIT | ${state.rendererActual.toUpperCase()} | ${preview} | zoom ${zoom.toFixed(2)}x | ${FIELD_TYPES[state.gradients[0].type]} ${combineLabel} ${FIELD_TYPES[state.gradients[1].type]} | LUT ${state.paletteId}`;
+  readout.textContent = `${state.width} x ${state.height} | ${state.valueBits}BIT | ${state.rendererActual.toUpperCase()} | ${currentFps} FPS | ${preview} | zoom ${zoom.toFixed(2)}x | ${FIELD_TYPES[state.gradients[0].type]} ${combineLabel} ${FIELD_TYPES[state.gradients[1].type]} | LUT ${state.paletteId}`;
 }
 
 function savePng() {

@@ -1,4 +1,4 @@
-export const GRADIENT_UNIFORM_LENGTH = 34;
+export const GRADIENT_UNIFORM_LENGTH = 48;
 
 export const GRADIENT_UNIFORM_SLOTS = {
   scale: 0,
@@ -34,7 +34,21 @@ export const GRADIENT_UNIFORM_SLOTS = {
   twist: 30,
   bitwiseMode: 31,
   bitShift: 32,
-  reserved: 33,
+  fanDirection: 33,
+  jitterRange: 34,
+  jitterSpeed: 35,
+  scaleAmp: 36,
+  scaleSpeed: 37,
+  contrastAmp: 38,
+  contrastSpeed: 39,
+  freq1Amp: 40,
+  freq1Speed: 41,
+  freq2Amp: 42,
+  freq2Speed: 43,
+  warpAmp: 44,
+  warpSpeed: 45,
+  noiseContrastAmp: 46,
+  noiseContrastSpeed: 47,
 };
 
 export function packGradientUniforms(g) {
@@ -72,5 +86,20 @@ export function packGradientUniforms(g) {
   values[GRADIENT_UNIFORM_SLOTS.twist] = g.twist;
   values[GRADIENT_UNIFORM_SLOTS.bitwiseMode] = g.bitwiseMode;
   values[GRADIENT_UNIFORM_SLOTS.bitShift] = g.bitShift;
+  values[GRADIENT_UNIFORM_SLOTS.fanDirection] = g.fanDirection < 0 ? -1 : 1;
+  values[GRADIENT_UNIFORM_SLOTS.jitterRange] = g.jitterRange ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.jitterSpeed] = g.jitterSpeed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.scaleAmp] = g.scaleAmp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.scaleSpeed] = g.scaleSpeed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.contrastAmp] = g.contrastAmp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.contrastSpeed] = g.contrastSpeed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.freq1Amp] = g.freq1Amp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.freq1Speed] = g.freq1Speed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.freq2Amp] = g.freq2Amp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.freq2Speed] = g.freq2Speed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.warpAmp] = g.warpAmp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.warpSpeed] = g.warpSpeed ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.noiseContrastAmp] = g.noiseContrastAmp ?? 0;
+  values[GRADIENT_UNIFORM_SLOTS.noiseContrastSpeed] = g.noiseContrastSpeed ?? 0;
   return values;
 }

@@ -20,9 +20,17 @@ value = normalized angle * valueRange * Angle Mult
 
 The result is a set of angular sectors radiating from the origin.
 
+# Animated origin
+
+Use the `A` button on `Origin X` or `Origin Y` to reveal that axis animation controls. Moving the origin changes the pivot point of the fan.
+
 # Angle Mult
 
 `Angle Mult` repeats the angular sweep. Higher values create more spokes.
+
+# Direction
+
+`Direction` flips the angular coordinate between clockwise and counterclockwise. The default clockwise direction preserves the previous fan behavior.
 
 # Rotation
 

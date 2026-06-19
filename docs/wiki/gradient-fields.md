@@ -24,9 +24,15 @@ A gradient field is not inherently red, blue, bright, or dark. It is just number
 
 This is why changing the LUT can completely change the visual mood while preserving the same structure.
 
+# Previewing one gradient
+
+Grad 1 and Grad 2 normally keep showing the final combined render. Use the `P` button in the title bar to switch the Grad tabs into individual preview mode. With `P` enabled, Grad 1 shows only Gradient 1 and Grad 2 shows only Gradient 2; Presets, Set, Anim, Comb, and LUT still show the final combined image.
+
 # Common controls
 
 `Scale` changes spatial frequency. Smaller scale usually means tighter bands, smaller cells, or denser coordinate quantization. Larger scale spreads the pattern out.
+
+Use the `A` button on `Scale` to reveal scale animation controls. `Amp` moves scale above and below the base value with a sine wave, and `Speed` controls how fast that modulation runs. Animated scale is clamped to stay at least `1`.
 
 `Offset` adds to the scalar value before field wrapping. It shifts the field through the value range.
 

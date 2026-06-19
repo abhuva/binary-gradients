@@ -29,6 +29,8 @@ More octaves add smaller details. Fewer octaves produce broad soft regions.
 
 Contrast expands or compresses the noise value distribution. Higher contrast makes features more pronounced.
 
+Use the `A` button on `Contrast` to reveal `Amp` and `Speed`. Animated contrast is clamped so modulation cannot invert the noise response.
+
 # Drift
 
 `Drift X` and `Drift Y` move sampling coordinates over time. This creates scrolling organic motion.

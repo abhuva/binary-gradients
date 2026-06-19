@@ -49,6 +49,11 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.title-actions {
+  display: flex;
+  gap: 4px;
+}
+
 .eyebrow {
   margin: 0 0 3px;
   color: var(--accent-2);
@@ -128,7 +133,7 @@ h2 {
   top: -10px;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 1px;
   padding: 0 0 10px;
   background: var(--panel);
@@ -189,6 +194,10 @@ label {
   gap: 4px;
 }
 
+.gradient-control.has-step.has-animation {
+  grid-template-columns: minmax(66px, 0.55fr) 24px 24px minmax(46px, 1fr) 46px 24px;
+}
+
 .gradient-control.has-snap {
   grid-template-columns: minmax(76px, 0.65fr) minmax(70px, 1fr) 46px 30px;
 }
@@ -203,6 +212,14 @@ label {
 
 .gradient-control.select-control select {
   min-width: 0;
+}
+
+.gradient-control.toggle-button-control {
+  grid-template-columns: minmax(66px, 0.45fr) minmax(150px, 1.55fr);
+}
+
+.gradient-toggle-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .gradient-control-label {
@@ -220,6 +237,49 @@ label {
 
 .gradient-control input[type="range"] {
   min-width: 0;
+}
+
+.gradient-control-group {
+  display: grid;
+  gap: 4px;
+}
+
+.animation-controls {
+  display: grid;
+  gap: 4px;
+  padding: 5px 0 5px 8px;
+  border-left: 1px solid var(--line);
+}
+
+.animation-controls[hidden] {
+  display: none;
+}
+
+.animation-control {
+  opacity: 0.92;
+}
+
+.animation-toggle-button {
+  width: 24px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  background: #11171a;
+  border-color: var(--line);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.animation-toggle-button.active {
+  color: #031014;
+  background: var(--accent);
+  border-color: var(--accent-2);
+}
+
+.animation-toggle-button[aria-expanded="true"]:not(.active) {
+  color: var(--text);
+  border-color: var(--accent);
 }
 
 .gradient-step-button {
@@ -267,6 +327,66 @@ label {
 
 .generator-control input[type="range"] {
   min-width: 0;
+}
+
+.lut-inline-field {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.lut-inline-field span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lut-inline-field input,
+.lut-inline-field select {
+  min-width: 0;
+}
+
+.lut-length-control {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lut-length-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.lut-length-presets button {
+  min-height: 20px;
+  margin: 0;
+  padding: 1px 3px;
+  font-size: 10px;
+}
+
+.lut-inline-field input[type="color"] {
+  padding: 1px;
+}
+
+.lut-generator-select-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19px;
+  gap: 6px;
+  align-items: center;
+}
+
+.lut-generator-select-row .lut-inline-field {
+  margin-bottom: 8px;
+}
+
+.lut-generator-select-row .context-help-button {
+  width: 19px;
+  min-height: 19px;
+  margin: 0 0 8px;
 }
 
 .generator-field {
@@ -326,6 +446,24 @@ label {
 }
 
 .compact-select select {
+  min-width: 0;
+}
+
+.compact-text {
+  grid-template-columns: minmax(76px, 0.7fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.compact-text span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-text input[type="text"] {
   min-width: 0;
 }
 
@@ -523,6 +661,12 @@ button:active {
   padding: 0;
   color: var(--accent);
   line-height: 1;
+}
+
+.icon-button.active {
+  color: #111;
+  background: var(--accent);
+  border-color: var(--accent-2);
 }
 
 .inline-zero {

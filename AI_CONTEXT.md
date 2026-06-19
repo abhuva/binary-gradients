@@ -156,6 +156,10 @@ Manhattan
 Chebyshev
 ```
 
+Voronoi `Jitter` is the base point displacement. `Jitter Range` and `Jitter Speed` animate that displacement as a sine wave around the base value, clamped to `0..1`.
+
+Voronoi `Contrast` also exposes an `A` drawer for `Amp` and `Speed`; shader contrast animation is clamped to a non-negative range.
+
 `modulo` is a stripe/modulo field with:
 
 ```text
@@ -204,16 +208,25 @@ Common controls:
 
 - `offset`
 - `offsetSpeed`
-- `scale`, except Plasma and Fan do not show scale because it has no effect there.
+- `scale`, except Plasma and Fan do not show scale because it has no effect there. New gradients default to scale `1`. Scale exposes an `A` drawer for `Amp` and `Speed` where it is visible.
 
 `scale`, `offset`, and `offsetSpeed` slider bounds are resolved in the UI from the active value depth. Do not reintroduce fixed 8-bit limits for these common controls.
 
 Type-specific controls are defined in `SPECIFIC_CONTROLS`.
 
-Gradient controls support range sliders by default and dropdowns through metadata:
+Fan fields expose a two-button direction toggle:
+
+```text
+Clockwise
+Counterclockwise
+```
+
+Gradient controls support range sliders by default, dropdowns, and two-button toggles through metadata:
 
 ```js
 { key, label, type: 'select', options: { value: 'Label' } }
+{ key, label, type: 'toggle', options: { value: 'Label' } }
+{ key, label, animation: { rangeKey, speedKey } }
 ```
 
 Use dropdowns for discrete modes; do not expose mode numbers as sliders.
@@ -221,6 +234,29 @@ Use dropdowns for discrete modes; do not expose mode numbers as sliders.
 Gradient controls are generated dynamically in `renderGradientPanel()` and `createGradientControl()`. Range controls in Grad 1/2 use compact single-line rows: label, slider, value, and for offset `Speed` a `0` snap button.
 
 Every generated gradient slider has compact `-` / `+` buttons that step by the slider's configured step size. Select controls do not get step buttons. The linear `Angle` control additionally has quick-set buttons for `90`, `180`, and `270`.
+
+Animatable range controls show an `A` button. The button expands inline `Range` and `Speed` sliders, and highlights when either animation value is non-zero. The drawer is expanded by default for active animation values.
+
+Current migrated animation drawers:
+
+```text
+Common > Scale -> Amp, Speed
+Rings > Origin X -> Amp X, Speed X
+Rings > Origin Y -> Amp Y, Speed Y
+Square / Diamond > Origin X -> Amp X, Speed X
+Square / Diamond > Origin Y -> Amp Y, Speed Y
+Square / Diamond > Angle -> Speed
+Fan / Angle > Origin X -> Amp X, Speed X
+Fan / Angle > Origin Y -> Amp Y, Speed Y
+Polar / Spiral > Origin X -> Amp X, Speed X
+Polar / Spiral > Origin Y -> Amp Y, Speed Y
+Voronoi > Jitter -> Range, Speed
+Voronoi > Contrast -> Amp, Speed
+Plasma > Freq 1 -> Amp, Speed
+Plasma > Freq 2 -> Amp, Speed
+Plasma > Warp -> Amp, Speed
+Noise > Contrast -> Amp, Speed
+```
 
 Generated gradient dropdown rows use a wider select column so closed dropdown text remains readable.
 
@@ -245,7 +281,7 @@ Important WebGL details already handled:
 
 ## Combine Modes
 
-`Render > Combine` uses two button rows instead of a dropdown:
+`Comb > Combine` uses two button rows instead of a dropdown:
 
 ```text
 Operation -> XOR, AND, OR, XNOR, NAND, NOR, ADD, SUB, DIFF, MUL, MIN, MAX
@@ -275,11 +311,11 @@ Adding a combine operation or modifier requires both JS registry changes and sha
 
 ## Field Wrap And Palette Wrap
 
-`Render > Field Wrap` controls how raw scalar gradient values are folded before Grad 1 and Grad 2 are combined. This affects pattern geometry.
+`Anim > Field Wrap` controls how raw scalar gradient values are folded before Grad 1 and Grad 2 are combined. This affects pattern geometry.
 
-`Render > Palette Wrap` controls how the final combined value plus palette offset indexes the LUT. This affects color traversal.
+`Anim > Palette > Palette Wrap` controls how the final combined value plus palette offset indexes the LUT. This affects color traversal.
 
-`Render > Palette > Offset` has compact `-` / `+` buttons that step the palette offset by the slider step. The buttons use wrapped offset math, so decreasing below zero wraps to the active value mask.
+`Anim > Palette > Offset` has compact `-` / `+` buttons that step the palette offset by the slider step. The buttons use wrapped offset math, so decreasing below zero wraps to the active value mask.
 
 Both wrap controls currently support:
 
@@ -371,7 +407,7 @@ At render time, the current LUT is built into RGB data and scaled to a GPU textu
 Presets are versioned snapshots of the current visual recipe:
 
 ```text
-canvas size/value depth
+canvas size intent/value depth
 render timing and palette cycling settings
 combine operation/modifier settings
 Grad 1 and Grad 2 full gradient definitions
@@ -379,7 +415,9 @@ current editable LUT definition
 current animation time
 ```
 
-Presets intentionally do not store runtime/device state, active tab, gradient preview toggles, viewport pan/zoom, or presentation mode.
+Preset state stores `width`, `height`, and `fixedCanvasSize`. Loading a preset only applies `width` and `height` when `fixedCanvasSize === true`; legacy and built-in presets without the flag are adaptive and keep the current Set tab dimensions. Value depth remains preset-controlled because it changes the numeric domain.
+
+Presets intentionally do not store runtime/device state, active tab, gradient preview button state, viewport pan/zoom, or presentation mode.
 
 The Presets tab saves presets to browser `localStorage` under `binary-gradients.presets.v1`. It also supports JSON export/import for moving presets between browsers or machines. Imported presets are normalized through `normalizePreset()` before storage or load.
 
@@ -398,8 +436,9 @@ Current tabs:
 
 ```text
 Presets
-Render
-Canvas
+Set
+Anim
+Comb
 Grad 1
 Grad 2
 LUT
@@ -408,18 +447,21 @@ LUT
 Preview behavior:
 
 ```text
-Render -> final combined result
-Canvas -> final combined result
-Grad 1 -> final combined result by default; gradient 1 only when its preview toggle is enabled
-Grad 2 -> final combined result by default; gradient 2 only when its preview toggle is enabled
+Anim -> final combined result
+Comb -> final combined result
+Set -> final combined result
+Grad 1 -> final combined result by default; gradient 1 only when the global preview button is enabled
+Grad 2 -> final combined result by default; gradient 2 only when the global preview button is enabled
 LUT -> final combined result
 ```
 
-`state.previewMode` is derived from `state.activeTab` and `state.gradientPreviewEnabled` through `previewModeForActiveTab()`. Do not make Grad 1 / Grad 2 tab activation implicitly change to individual-preview mode.
+The app starts on the `Presets` tab. `state.previewMode` is derived from `state.activeTab` and `state.gradientPreviewEnabled` through `previewModeForActiveTab()`. The single top-left `P` preview button toggles both gradient preview flags at once. Do not make Grad 1 / Grad 2 tab activation implicitly change to individual-preview mode.
+
+The title action row also contains `AS` and `PS` icon buttons. `AS` pauses/resumes global animation time through `state.timeRunning`; `PS` pauses/resumes palette cycling through `state.paletteRunning`. Their active state means the corresponding runtime motion is enabled.
 
 The stage supports wheel zoom and drag pan. Viewport zoom/pan persists across tab switches; only explicit Reset View, canvas size changes, initial load, and window resize should recenter the canvas.
 
-The Canvas tab `Use Window` button copies the current browser window `innerWidth` and `innerHeight` into the canvas size fields, applies them, and recenters the viewport. This is a convenience for setting render dimensions; it is not presentation/fullscreen mode.
+The Set tab `Use Window` button copies the current browser window `innerWidth` and `innerHeight` into the canvas size fields, applies them, and recenters the viewport. This is a convenience for setting render dimensions; it is not presentation/fullscreen mode. The Set tab also owns the `GPU Diagnostics` section and its `gpu-diag` button.
 
 On startup, the app runs the same window-size application once so the initial render dimensions match the current browser window.
 
@@ -431,7 +473,7 @@ The UI style should remain compact, square-cornered, and tool-like:
 - No decorative marketing layout.
 - Pixelated canvas rendering.
 - Small but readable controls.
-- Render-tab sliders use compact single-line rows where practical.
+- Anim-tab sliders use compact single-line rows where practical.
 
 ## Context Wiki
 

@@ -18,7 +18,7 @@ y = floor(pixel.y / scale)
 value = op(x, y)
 ```
 
-Unlike the Render > Combine stage, this operation happens inside one gradient field. It is a coordinate generator.
+Unlike the Comb > Combine stage, this operation happens inside one gradient field. It is a coordinate generator.
 
 # Basic modes
 
