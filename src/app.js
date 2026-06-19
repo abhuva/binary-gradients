@@ -57,6 +57,9 @@ let activePresetTag = 'all';
 let presetSearchTerm = '';
 let selectedPointId = currentLut.points[0]?.id ?? null;
 let lastTime = performance.now();
+let fpsSampleStart = lastTime;
+let fpsFrameCount = 0;
+let currentFps = 0;
 let renderQueued = false;
 let needsStaticRender = true;
 let viewportController = null;
@@ -738,8 +741,18 @@ function requestRender() {
 
 function renderFrame() {
   needsStaticRender = false;
+  updateFps(performance.now());
   updateReadouts();
   renderer?.render(renderSnapshot());
+}
+
+function updateFps(now) {
+  fpsFrameCount += 1;
+  const elapsed = now - fpsSampleStart;
+  if (elapsed < 500) return;
+  currentFps = Math.round((fpsFrameCount * 1000) / elapsed);
+  fpsFrameCount = 0;
+  fpsSampleStart = now;
 }
 
 function renderSnapshot() {
@@ -1009,7 +1022,7 @@ function updateReadouts() {
   const preview = state.previewMode === 'final' ? 'FINAL' : state.previewMode.toUpperCase();
   const combineLabel = `${COMBINE_OPERATION_TYPES[state.combineOperation]}${state.combineModifier === 'none' ? '' : ` + ${COMBINE_MODIFIER_TYPES[state.combineModifier]}`}`;
   const zoom = viewportController?.view.scale ?? 1;
-  readout.textContent = `${state.width} x ${state.height} | ${state.valueBits}BIT | ${state.rendererActual.toUpperCase()} | ${preview} | zoom ${zoom.toFixed(2)}x | ${FIELD_TYPES[state.gradients[0].type]} ${combineLabel} ${FIELD_TYPES[state.gradients[1].type]} | LUT ${state.paletteId}`;
+  readout.textContent = `${state.width} x ${state.height} | ${state.valueBits}BIT | ${state.rendererActual.toUpperCase()} | ${currentFps} FPS | ${preview} | zoom ${zoom.toFixed(2)}x | ${FIELD_TYPES[state.gradients[0].type]} ${combineLabel} ${FIELD_TYPES[state.gradients[1].type]} | LUT ${state.paletteId}`;
 }
 
 function savePng() {

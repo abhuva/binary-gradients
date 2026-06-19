@@ -136,6 +136,7 @@ export function createWebGlRenderer(canvas, { onDiagnostic = () => {} } = {}) {
     onDiagnostic(`Center pixel RGBA: ${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]}`);
     onDiagnostic(`Post-read gl.getError: ${glErrorName(readError)}`);
     probeShaderOutput(snapshot);
+    render(snapshot);
   }
 
   function probeShaderOutput(snapshot) {

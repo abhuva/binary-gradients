@@ -47,8 +47,25 @@ export function createMainShaderSources() {
   float smoothCurve(float t) { return t * t * (3.0 - 2.0 * t); }
   vec2 smoothCurve(vec2 t) { return t * t * (3.0 - 2.0 * t); }
   float hash2(vec2 p, float seed) { return fract(sin(dot(p, vec2(127.1, 311.7)) + seed * 74.7) * 43758.5453); }
+  uint hashUint(uint value) {
+    value ^= value >> 16;
+    value *= 0x7feb352du;
+    value ^= value >> 15;
+    value *= 0x846ca68bu;
+    value ^= value >> 16;
+    return value;
+  }
+  float hashCellUint(ivec2 cell, int seed, uint salt) {
+    uint x = uint(cell.x) * 0x9e3779b9u;
+    uint y = uint(cell.y) * 0x85ebca6bu;
+    uint s = uint(seed) * 0xc2b2ae35u;
+    return float(hashUint(x ^ y ^ s ^ salt)) * (1.0 / 4294967295.0);
+  }
   vec2 hashCellPoint(vec2 cell, float seed) {
     return vec2(hash2(cell, seed), hash2(cell + vec2(19.19, 73.73), seed + 11.0));
+  }
+  vec2 stableHashCellPoint(ivec2 cell, int seed) {
+    return vec2(hashCellUint(cell, seed, 0x27d4eb2du), hashCellUint(cell, seed, 0x165667b1u));
   }
   float voronoiDistance(vec2 delta, int metric) {
     vec2 a = abs(delta);
@@ -181,23 +198,29 @@ export function createMainShaderSources() {
     else if (type == ${FIELD_SHADER_IDS.voronoi}) {
       vec2 p = (pixel + u_time * vec2(g[19], g[20]) * scale) / scale;
       vec2 baseCell = floor(p);
+      ivec2 baseCellId = ivec2(baseCell);
       vec2 local = fract(p);
       float jitter = clamp(g[15], 0.0, 1.0);
+      int seed = int(floor(g[16] + 0.5));
       int metric = int(clamp(floor(g[22] + 0.5), 0.0, 2.0));
       float nearest = 9999.0;
       float second = 9999.0;
       float cellId = 0.0;
+      const float tieEpsilon = 0.000001;
       for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
           vec2 neighbor = vec2(float(x), float(y));
-          vec2 cell = baseCell + neighbor;
-          vec2 point = mix(vec2(0.5), hashCellPoint(cell, g[16]), jitter);
+          ivec2 cellIdValue = baseCellId + ivec2(x, y);
+          vec2 point = mix(vec2(0.5), stableHashCellPoint(cellIdValue, seed), jitter);
           vec2 delta = neighbor + point - local;
           float dist = voronoiDistance(delta, metric);
-          if (dist < nearest) {
+          float candidateCellId = hashCellUint(cellIdValue, seed, 0x94d049bbu);
+          bool closer = dist < nearest - tieEpsilon;
+          bool tiedCloser = abs(dist - nearest) <= tieEpsilon && candidateCellId < cellId;
+          if (closer || tiedCloser) {
             second = nearest;
             nearest = dist;
-            cellId = hash2(cell, g[16] + 31.0);
+            cellId = candidateCellId;
           } else if (dist < second) {
             second = dist;
           }
