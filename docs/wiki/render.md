@@ -1,8 +1,8 @@
 ---
 id: render
-title: Render
-summary: The runtime view of the pipeline: time, wrapping, diagnostics, and final output.
-section: Render
+title: Anim
+summary: Animation, wrapping, palette cycling, and final output.
+section: Anim
 related:
   - render-combine
   - render-palette
@@ -10,7 +10,7 @@ related:
   - gradient-fields
 ---
 
-# The render pipeline
+# The animation/render pipeline
 
 The renderer turns two numeric fields into a color image. Color is the last step, not the first one.
 
@@ -37,14 +37,10 @@ Examples:
 
 If none of the active gradients use animated parameters, changing time may not visibly change the image.
 
+Use the `AS` button in the title bar to pause or resume global animation time without changing the Time Speed value.
+
 # Field wrap versus palette wrap
 
 The two wrap dropdowns affect different parts of the pipeline.
 
 `Field Wrap` happens before combine and changes the scalar geometry. `Palette Wrap` happens after combine and changes how values walk through the LUT. See [Field Wrap and Palette Wrap](wiki:render-palette) for the full explanation.
-
-# GPU diagnostics
-
-`gpu-diag` runs a compact WebGL check. It reports renderer information, value depth, texture state, shader/program status, and a center-pixel readback.
-
-Use it when the canvas is black, frozen, or suspicious after changing shader-facing code. It is not a visual analysis tool; it is a sanity check that the GPU path is alive.

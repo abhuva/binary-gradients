@@ -115,7 +115,7 @@ export function createMainShaderSources() {
   }
 
   float fieldValue(int type, float g[${GRADIENT_UNIFORM_LENGTH}], vec2 pixel, vec2 uv) {
-    float scale = max(1.0, g[0]);
+    float scale = max(1.0, g[0] + sin(u_time * g[37]) * g[36]);
     float offset = g[1] + u_time * g[2];
     float ox = g[3] + sin(u_time * g[5]) * g[7];
     float oy = g[4] + sin(u_time * g[6]) * g[8];
@@ -134,7 +134,8 @@ export function createMainShaderSources() {
       value = floor(max(abs(q.x), abs(q.y)) / scale);
     }
     else if (type == ${FIELD_SHADER_IDS.fan}) {
-      float a = atan(d.y, d.x) + 3.14159265359 + radians(u_time * g[10]);
+      float fanDirection = g[33] < 0.0 ? -1.0 : 1.0;
+      float a = atan(d.y, d.x) * fanDirection + 3.14159265359 + radians(u_time * g[10]);
       value = floor((a / 6.28318530718) * u_valueRange * max(1.0, g[11]));
     }
     else if (type == ${FIELD_SHADER_IDS.bitwiseCoord}) {
@@ -200,7 +201,7 @@ export function createMainShaderSources() {
       vec2 baseCell = floor(p);
       ivec2 baseCellId = ivec2(baseCell);
       vec2 local = fract(p);
-      float jitter = clamp(g[15], 0.0, 1.0);
+      float jitter = clamp(g[15] + sin(u_time * g[35]) * g[34], 0.0, 1.0);
       int seed = int(floor(g[16] + 0.5));
       int metric = int(clamp(floor(g[22] + 0.5), 0.0, 2.0));
       float nearest = 9999.0;
@@ -227,17 +228,21 @@ export function createMainShaderSources() {
         }
       }
       int mode = int(clamp(floor(g[21] + 0.5), 0.0, 2.0));
-      if (mode == 1) value = floor(clamp(nearest * g[18], 0.0, 1.0) * (u_valueRange - 1.0));
-      else if (mode == 2) value = floor(clamp((second - nearest) * g[18], 0.0, 1.0) * (u_valueRange - 1.0));
+      float contrast = clamp(g[18] + sin(u_time * g[39]) * g[38], 0.0, 16.0);
+      if (mode == 1) value = floor(clamp(nearest * contrast, 0.0, 1.0) * (u_valueRange - 1.0));
+      else if (mode == 2) value = floor(clamp((second - nearest) * contrast, 0.0, 1.0) * (u_valueRange - 1.0));
       else value = floor(cellId * (u_valueRange - 1.0));
     }
     else if (type == ${FIELD_SHADER_IDS.plasma}) {
       float phase = u_time * g[14];
       vec2 c = uv - 0.5;
-      float warp = sin((uv.x + uv.y + phase * 0.05) * g[13]) * g[15] * 0.02;
-      float v = sin((uv.x + warp) * g[12] + phase)
-        + sin((uv.y - warp) * g[13] - phase * 0.7)
-        + sin(length(c) * (g[12] + g[13]) - phase * 0.45);
+      float freq1 = max(1.0, g[12] + sin(u_time * g[41]) * g[40]);
+      float freq2 = max(1.0, g[13] + sin(u_time * g[43]) * g[42]);
+      float warpAmount = max(0.0, g[15] + sin(u_time * g[45]) * g[44]);
+      float warp = sin((uv.x + uv.y + phase * 0.05) * freq2) * warpAmount * 0.02;
+      float v = sin((uv.x + warp) * freq1 + phase)
+        + sin((uv.y - warp) * freq2 - phase * 0.7)
+        + sin(length(c) * (freq1 + freq2) - phase * 0.45);
       value = floor((v / 3.0 * 0.5 + 0.5) * (u_valueRange - 1.0));
     }
     else if (type == ${FIELD_SHADER_IDS.noise}) {
@@ -250,7 +255,8 @@ export function createMainShaderSources() {
         sum += valueNoise(p * exp2(float(i)), g[16] + float(i) * 13.0) * amp;
         amp *= 0.5;
       }
-      value = floor(pow(clamp(sum * g[18], 0.0, 1.0), 1.2) * (u_valueRange - 1.0));
+      float noiseContrast = clamp(g[18] + sin(u_time * g[47]) * g[46], 0.0, 8.0);
+      value = floor(pow(clamp(sum * noiseContrast, 0.0, 1.0), 1.2) * (u_valueRange - 1.0));
     }
     return wrapFieldValue(value + offset);
   }

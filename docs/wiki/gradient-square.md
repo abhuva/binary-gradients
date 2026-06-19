@@ -30,6 +30,14 @@ A box and a diamond are the same field with different rotation.
 
 This is why the app exposes one `Square / Diamond` field instead of separate box and diamond types.
 
+# Animated origin
+
+Use the `A` button on `Origin X` or `Origin Y` to reveal that axis animation controls. Moving the origin changes the center of the square-distance field.
+
+# Rotation
+
+Use the `A` button on `Angle` to reveal rotation speed. This animates the box-to-diamond orientation over time without changing the base angle.
+
 # Practical use
 
 Square fields are good for architectural structure. They combine strongly with rings because both are distance fields but use different metrics.

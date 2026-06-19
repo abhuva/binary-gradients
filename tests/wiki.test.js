@@ -7,7 +7,7 @@ import { parseFrontmatter } from '../src/wiki/frontmatter.js';
 test('parseFrontmatter reads scalar and array metadata', () => {
   const parsed = parseFrontmatter(`---
 id: render-combine
-title: Render > Combine
+title: Comb > Combine
 order: 20
 related:
   - gradient-fields
@@ -19,7 +19,7 @@ related:
 
   assert.deepEqual(parsed.metadata, {
     id: 'render-combine',
-    title: 'Render > Combine',
+    title: 'Comb > Combine',
     order: 20,
     related: ['gradient-fields', 'lut-definition'],
   });

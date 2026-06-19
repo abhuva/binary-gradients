@@ -27,8 +27,10 @@ The folder name has not yet been renamed, but the desired repo/project name is `
 The app has these tabs:
 
 ```text
-Render
-Canvas
+Presets
+Set
+Anim
+Comb
 Grad 1
 Grad 2
 LUT
@@ -37,10 +39,12 @@ LUT
 Tab preview behavior:
 
 ```text
-Render -> final combined result
-Canvas -> final combined result
-Grad 1 -> gradient 1 only
-Grad 2 -> gradient 2 only
+Presets -> final combined result
+Set -> final combined result
+Anim -> final combined result
+Comb -> final combined result
+Grad 1 -> final combined result by default; gradient 1 only when the global preview button is enabled
+Grad 2 -> final combined result by default; gradient 2 only when the global preview button is enabled
 LUT -> final combined result
 ```
 
@@ -122,7 +126,7 @@ Then open:
 http://localhost:8080
 ```
 
-If GPU output is black or broken, use the `GPU Diagnostics` button in the Render tab and inspect console output.
+If GPU output is black or broken, use the `GPU Diagnostics` section in the Set tab and inspect console output.
 
 ## Research Summary
 

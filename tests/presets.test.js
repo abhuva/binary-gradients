@@ -37,10 +37,23 @@ test('createPreset captures render state, gradients, and editable LUT', () => {
   assert.deepEqual(preset.tags, []);
   assert.equal(preset.state.width, 1920);
   assert.equal(preset.state.height, 1080);
+  assert.equal(preset.state.fixedCanvasSize, false);
   assert.equal(preset.state.time, 12.5);
   assert.equal(preset.state.combineOperation, 'and');
   assert.equal(preset.state.gradients[0].type, 'voronoi');
   assert.deepEqual(preset.lut.points, lut.points);
+});
+
+test('createPreset can opt into fixed canvas size', () => {
+  const state = createInitialState();
+  state.width = 640;
+  state.height = 360;
+
+  const preset = createPreset({ name: 'Fixed Size', state, currentLut: lut, fixedCanvasSize: true });
+
+  assert.equal(preset.state.width, 640);
+  assert.equal(preset.state.height, 360);
+  assert.equal(preset.state.fixedCanvasSize, true);
 });
 
 test('normalizePreset clamps unsafe values and falls back to known modes', () => {
@@ -71,6 +84,7 @@ test('normalizePreset clamps unsafe values and falls back to known modes', () =>
   assert.equal(preset.name, 'Bad Preset!');
   assert.equal(preset.state.width, 16);
   assert.equal(preset.state.height, 8192);
+  assert.equal(preset.state.fixedCanvasSize, false);
   assert.equal(preset.state.valueBits, 12);
   assert.equal(preset.state.timeScale, 4);
   assert.equal(preset.state.combineOperation, 'xor');

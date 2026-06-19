@@ -14,10 +14,10 @@ RGB(x, y) = LUT[V]
 ```
 
 The current implementation is GPU-only via WebGL2.
-
+(in some Browsers like Brave, there might be small issues. Fully tested on Chrome and Firefox)
 ## Historical Context
 
-This project recreates and extends an effect Marc discovered experimentally around 1996 using Turbo Pascal / VGA-era graphics. The original workflow involved drawing or filling simple geometric patterns, combining them through logical/binary operations, and animating colors by palette changes.
+This project recreates and extends an effect i discovered experimentally around 1996 using Turbo Pascal / VGA-era graphics. The original workflow involved drawing or filling simple geometric patterns, combining them through logical/binary operations, and animating colors by palette changes.
 
 The exact project formulation is:
 
@@ -36,7 +36,7 @@ Related historical/technical concepts existed separately:
 - Bitwise/Sierpinski structures from integer coordinate operations.
 - Plasma/noise procedural textures.
 
-The specific generalized pipeline above does not appear to have a widely established canonical name. In this repo we call it `binary-gradients`.
+The specific generalized pipeline above does not appear to have a widely established canonical name. In this repo i call it `binary-gradients`.
 
 ## Current Features
 

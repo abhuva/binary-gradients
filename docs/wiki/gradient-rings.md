@@ -25,7 +25,7 @@ Scale controls ring width. Small scale creates many dense rings. Large scale cre
 
 # Animated origin
 
-The origin can move with sine-wave animation:
+Use the `A` button on `Origin X` or `Origin Y` to reveal that axis animation controls. The origin can move with sine-wave animation:
 
 ```text
 origin.x = Origin X + sin(time * Speed X) * Amp X

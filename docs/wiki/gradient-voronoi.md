@@ -34,6 +34,12 @@ For each pixel, it finds the nearest and second-nearest feature points.
 
 `Seed` changes the pseudo-random point placement. `Jitter` controls how far points move from the cell center. Low jitter creates regular grids. High jitter creates more natural cells.
 
+Use the `A` button on the Jitter row to reveal its animation controls. `Range` animates above and below the base jitter value with a sine wave. `Speed` controls that oscillation speed. The animated jitter is clamped between `0` and `1`, so it never moves points outside the intended Voronoi cell jitter domain.
+
+# Contrast
+
+Contrast expands the visible distance or edge response. Use the `A` button on `Contrast` to reveal `Amp` and `Speed`. Animated contrast is clamped so modulation cannot invert the distance response.
+
 # Drift
 
 Drift moves the sampling position over time. It scrolls the cell field rather than moving the camera.

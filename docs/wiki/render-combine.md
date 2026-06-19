@@ -1,8 +1,8 @@
 ---
 id: render-combine
-title: Render > Combine
+title: Comb > Combine
 summary: How Grad 1 and Grad 2 become one integer value field through binary and arithmetic operations.
-section: Render
+section: Comb
 related:
   - gradient-fields
   - gradient-bitwiseCoord

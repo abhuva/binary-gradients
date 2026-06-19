@@ -22,7 +22,7 @@ No CPU renderer is present. This is intentional because high resolutions and lar
 Defines the static UI skeleton:
 
 - Left tool panel.
-- Tabs: `Presets`, `Render`, `Canvas`, `Grad 1`, `Grad 2`, `LUT`.
+- Tabs: `Presets`, `Set`, `Anim`, `Comb`, `Grad 1`, `Grad 2`, `LUT`.
 - Main canvas viewport.
 - LUT editor canvas.
 - GPU diagnostics output.
@@ -153,11 +153,13 @@ Common parameters:
 ```text
 type
 scale
+scaleAmp
+scaleSpeed
 offset
 offsetSpeed
 ```
 
-The generated UI hides `scale` for field types where it has no effect, currently Plasma and Fan.
+New gradients default to scale `1`. The generated UI hides `scale` for field types where it has no effect, currently Plasma and Fan. Visible scale controls expose an animation drawer for `scaleAmp` and `scaleSpeed`.
 
 Origin-based parameters:
 
@@ -175,6 +177,7 @@ Directional/fan parameters:
 ```text
 angle
 rotationSpeed
+fanDirection
 angleMultiplier
 ```
 
@@ -182,23 +185,60 @@ Plasma/noise parameters:
 
 ```text
 freq1
+freq1Amp
+freq1Speed
 freq2
+freq2Amp
+freq2Speed
 phaseSpeed
 warp
+warpAmp
+warpSpeed
+jitterRange
+jitterSpeed
 seed
 octaves
 contrast
+contrastAmp
+contrastSpeed
+noiseContrastAmp
+noiseContrastSpeed
 driftX
 driftY
 ```
 
-Controls are generated from metadata in `COMMON_CONTROLS` and `SPECIFIC_CONTROLS`. Slider controls are the default. Discrete modes should use select metadata:
+Controls are generated from metadata in `COMMON_CONTROLS` and `SPECIFIC_CONTROLS`. Slider controls are the default. Discrete modes should use select metadata or a two-button toggle when the choice is binary:
 
 ```js
 { key, label, type: 'select', options: { value: 'Label' } }
+{ key, label, type: 'toggle', options: { value: 'Label' } }
+{ key, label, animation: { rangeKey, speedKey } }
 ```
 
-Generated gradient sliders add compact `-` / `+` step buttons in the UI. Select controls do not get step buttons. The linear `Angle` slider also exposes `90`, `180`, and `270` quick-set buttons.
+Generated gradient sliders add compact `-` / `+` step buttons in the UI. Select and toggle controls do not get step buttons. The linear `Angle` slider also exposes `90`, `180`, and `270` quick-set buttons.
+
+Animatable range controls show an inline `A` button. Opening it reveals `Range` and `Speed` sliders below the base parameter. The `A` button is highlighted whenever either animation value is non-zero, and active animation drawers render expanded when the panel is rebuilt.
+
+Current migrated animation drawers:
+
+```text
+Common > Scale -> Amp, Speed
+Rings > Origin X -> Amp X, Speed X
+Rings > Origin Y -> Amp Y, Speed Y
+Square / Diamond > Origin X -> Amp X, Speed X
+Square / Diamond > Origin Y -> Amp Y, Speed Y
+Square / Diamond > Angle -> Speed
+Fan / Angle > Origin X -> Amp X, Speed X
+Fan / Angle > Origin Y -> Amp Y, Speed Y
+Polar / Spiral > Origin X -> Amp X, Speed X
+Polar / Spiral > Origin Y -> Amp Y, Speed Y
+Voronoi > Jitter -> Range, Speed
+Voronoi > Contrast -> Amp, Speed
+Plasma > Freq 1 -> Amp, Speed
+Plasma > Freq 2 -> Amp, Speed
+Plasma > Warp -> Amp, Speed
+Noise > Contrast -> Amp, Speed
+```
 
 Generated gradient select rows use a wider select column than slider rows so closed dropdown labels remain readable.
 
@@ -245,6 +285,12 @@ Euclidean
 Manhattan
 Chebyshev
 ```
+
+Voronoi jitter uses `warp` as the base displacement. `jitterRange` and `jitterSpeed` modulate that value with a sine wave in the shader, then clamp the result to `0..1`.
+
+Voronoi contrast uses `contrast` as the base distance/edge gain. `contrastAmp` and `contrastSpeed` modulate it with a sine wave in the shader, then clamp it to a non-negative range.
+
+Noise contrast uses the same base `contrast` parameter, but separate `noiseContrastAmp` and `noiseContrastSpeed` modulation fields because its useful range differs from Voronoi contrast.
 
 `modulo` is a stripe/modulo field:
 
@@ -362,20 +408,23 @@ u_lut
 The active tab controls what the main canvas shows:
 
 ```text
-Render -> final result
-Canvas -> final result
-Grad 1 -> final result unless its preview toggle is enabled
-Grad 2 -> final result unless its preview toggle is enabled
+Anim -> final result
+Comb -> final result
+Set -> final result
+Grad 1 -> final result unless the global preview button is enabled
+Grad 2 -> final result unless the global preview button is enabled
 LUT -> final result
 ```
 
-This is implemented by deriving `state.previewMode` from `state.activeTab` and `state.gradientPreviewEnabled`, then passing it to shader uniform `u_preview`.
+The app starts on the `Presets` tab. This is implemented by deriving `state.previewMode` from `state.activeTab` and `state.gradientPreviewEnabled`, then passing it to shader uniform `u_preview`. The single title-bar preview button toggles both gradient preview flags at once.
+
+The title action row owns compact global runtime toggles: `P` for gradient preview mode, `AS` for global animation time, `PS` for palette cycling, and the presentation button. `AS` maps to `state.timeRunning`; `PS` maps to `state.paletteRunning`.
 
 Tab switching must not reset the viewport camera. Pan/zoom state persists across tabs; reset behavior is reserved for explicit Reset View, canvas size changes, initial load, and window resize.
 
-Render-tab sliders use compact single-line rows where practical, and related short actions can be grouped into button rows to keep the left panel dense.
+Anim-tab sliders use compact single-line rows where practical, and related short actions can be grouped into button rows to keep the left panel dense.
 
-The Canvas tab includes a `Use Window` action that copies `window.innerWidth` and `window.innerHeight` into the render dimensions, applies the resize, and recenters the viewport. This changes the actual render size.
+The Set tab includes a `Use Window` action that copies `window.innerWidth` and `window.innerHeight` into the render dimensions, applies the resize, and recenters the viewport. This changes the actual render size. The Set tab also owns the `GPU Diagnostics` section because diagnostics are device/runtime settings rather than animation controls.
 
 Presentation mode is a separate UI/display state. It hides the side panel, readout, and LUT dock, disables viewport zoom/drag, and fits the current render canvas uniformly into the browser window without changing `state.width` or `state.height`. Entering presentation mode stores the current viewport camera; exiting via any key or the floating top-left button restores that camera.
 
@@ -390,9 +439,9 @@ Each markdown article starts with simple frontmatter:
 ```text
 ---
 id: render-combine
-title: Render > Combine
+title: Comb > Combine
 summary: How two scalar fields are combined.
-section: Render
+section: Comb
 related:
   - gradient-fields
 ---
@@ -402,7 +451,7 @@ The wiki renderer intentionally supports a controlled markdown subset: headings,
 
 ## Field And Palette Wrap
 
-`Render > Field Wrap` controls scalar field folding before Grad 1 and Grad 2 are combined:
+`Anim > Field Wrap` controls scalar field folding before Grad 1 and Grad 2 are combined:
 
 ```text
 raw gradient value + gradient offset -> field wrap -> A/B
@@ -410,7 +459,7 @@ raw gradient value + gradient offset -> field wrap -> A/B
 
 This affects the underlying pattern geometry.
 
-`Render > Palette Wrap` controls LUT indexing after the gradients have been combined:
+`Anim > Palette > Palette Wrap` controls LUT indexing after the gradients have been combined:
 
 ```text
 combined value + palette offset -> palette wrap -> LUT index
@@ -426,7 +475,7 @@ Presets are versioned visual recipes managed by `src/domain/presets.js`.
 
 Included in a preset:
 
-- Canvas dimensions and value depth.
+- Canvas dimensions, fixed-size intent, and value depth.
 - Render timing, animation phase, field/palette wrap modes, and palette cycling state.
 - Combine operation, modifier, and shift.
 - Full Grad 1 and Grad 2 definitions.
@@ -436,7 +485,7 @@ Excluded from a preset:
 
 - WebGL/runtime diagnostics such as `rendererActual`.
 - Derived value-depth fields beyond normalization output.
-- Active tab, gradient preview toggles, viewport pan/zoom, and presentation mode.
+- Active tab, gradient preview button state, viewport pan/zoom, and presentation mode.
 
 Preset storage has layered sources:
 
@@ -445,6 +494,8 @@ Preset storage has layered sources:
 - Imported JSON can be either one preset or a full collection.
 
 The Presets tab renders a unified clickable browser with search and tag filters. Clicking a preset loads it immediately. Built-in presets are read-only examples; user presets can be saved, updated, deleted, and exported. If a user preset has the same ID as a built-in preset, the user preset wins in the displayed browser.
+
+Preset loading is adaptive by default: `width` and `height` are only applied when `state.fixedCanvasSize === true`. Legacy presets without that flag keep the current Set tab dimensions while still applying value depth and the visual recipe.
 
 `Export Collection` downloads the complete user preset collection. `Export Selected` remains available for individual preset sharing.
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { advancePaletteCycleState, wrapPaletteOffset } from '../src/domain/palette-cycle.js';
-import { previewModeForActiveTab, resolveValueDepth } from '../src/domain/state.js';
+import { createInitialState, previewModeForActiveTab, resolveValueDepth } from '../src/domain/state.js';
 import { clampNumber, wrapRange } from '../src/domain/value-range.js';
 
 test('wrapRange preserves fractional values across positive and negative input', () => {
@@ -83,12 +83,18 @@ test('resolveValueDepth clamps requested bits and max texture size', () => {
   assert.deepEqual(resolveValueDepth(13, 4096), { valueBits: 12, valueRange: 4096, valueMask: 4095 });
 });
 
-test('gradient tabs only switch to individual previews when their toggles are enabled', () => {
+test('gradient tabs only switch to individual previews when global preview is enabled', () => {
   assert.equal(previewModeForActiveTab('render', [true, true]), 'final');
   assert.equal(previewModeForActiveTab('grad1', [false, true]), 'final');
   assert.equal(previewModeForActiveTab('grad2', [true, false]), 'final');
   assert.equal(previewModeForActiveTab('grad1', [true, false]), 'grad1');
   assert.equal(previewModeForActiveTab('grad2', [false, true]), 'grad2');
+  assert.equal(previewModeForActiveTab('grad1', [true, true]), 'grad1');
+  assert.equal(previewModeForActiveTab('grad2', [true, true]), 'grad2');
+});
+
+test('initial state opens on presets tab', () => {
+  assert.equal(createInitialState().activeTab, 'presets');
 });
 
 test('clampNumber floors finite values and clamps bounds', () => {

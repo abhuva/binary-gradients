@@ -23,7 +23,7 @@ const DEFAULT_LUT = {
   ],
 };
 
-export function createPreset({ name, description = '', tags = [], state, currentLut }) {
+export function createPreset({ name, description = '', tags = [], state, currentLut, fixedCanvasSize = false }) {
   const presetName = normalizePresetName(name);
   return normalizePreset({
     version: PRESET_VERSION,
@@ -33,7 +33,7 @@ export function createPreset({ name, description = '', tags = [], state, current
     tags,
     createdAt: new Date().toISOString(),
     app: 'binary-gradients',
-    state: snapshotPresetState(state),
+    state: snapshotPresetState(state, { fixedCanvasSize }),
     lut: clonePresetLut(currentLut),
   });
 }
@@ -59,6 +59,7 @@ export function normalizePreset(rawPreset, maxTextureSize = Infinity) {
     state: {
       width: clampNumber(stateSource.width, 16, 8192),
       height: clampNumber(stateSource.height, 16, 8192),
+      fixedCanvasSize: stateSource.fixedCanvasSize === true,
       valueBits: resolved.valueBits,
       valueRange,
       valueMask,
@@ -157,10 +158,11 @@ export function mergePresetLibraries({ builtIn = [], user = [] } = {}) {
   return [...merged.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function snapshotPresetState(state) {
+export function snapshotPresetState(state, { fixedCanvasSize = false } = {}) {
   return {
     width: state.width,
     height: state.height,
+    fixedCanvasSize: fixedCanvasSize === true,
     valueBits: state.valueBits,
     valueRange: state.valueRange,
     valueMask: state.valueMask,

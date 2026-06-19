@@ -23,6 +23,8 @@ value = normalized v across the value range
 
 `Freq 1` and `Freq 2` control wave density. Higher frequencies create smaller folds and more visual activity.
 
+Use the `A` button on each frequency row to reveal `Amp` and `Speed`. This modulates wave density over time with a sine wave.
+
 # Phase Speed
 
 `Phase Speed` animates the wave phase. Positive and negative values move the waves in opposite temporal directions.
@@ -30,6 +32,8 @@ value = normalized v across the value range
 # Warp
 
 `Warp` bends coordinates before sampling the waves. Small values add fluid motion. Large values can create heavy distortion.
+
+Use the `A` button on `Warp` to reveal `Amp` and `Speed`. Animated warp is clamped to stay non-negative.
 
 # Practical use
 

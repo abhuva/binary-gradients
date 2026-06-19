@@ -2,7 +2,7 @@
 id: render-palette
 title: Field Wrap and Palette Wrap
 summary: The two wrap domains: scalar field wrapping before combine and LUT wrapping after combine.
-section: Render
+section: Anim
 related:
   - render-combine
   - render-palette-controls
