@@ -269,6 +269,66 @@ label {
   min-width: 0;
 }
 
+.lut-inline-field {
+  grid-template-columns: minmax(76px, 0.65fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.lut-inline-field span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lut-inline-field input,
+.lut-inline-field select {
+  min-width: 0;
+}
+
+.lut-length-control {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.lut-length-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.lut-length-presets button {
+  min-height: 20px;
+  margin: 0;
+  padding: 1px 3px;
+  font-size: 10px;
+}
+
+.lut-inline-field input[type="color"] {
+  padding: 1px;
+}
+
+.lut-generator-select-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19px;
+  gap: 6px;
+  align-items: center;
+}
+
+.lut-generator-select-row .lut-inline-field {
+  margin-bottom: 8px;
+}
+
+.lut-generator-select-row .context-help-button {
+  width: 19px;
+  min-height: 19px;
+  margin: 0 0 8px;
+}
+
 .generator-field {
   grid-template-columns: minmax(76px, 0.65fr) minmax(80px, 1fr);
   align-items: center;

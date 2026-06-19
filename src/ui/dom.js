@@ -49,7 +49,6 @@ export function bindControls() {
     savePng: document.querySelector('#savePng'),
     lutId: document.querySelector('#lutId'),
     lutLength: document.querySelector('#lutLength'),
-    applyLutLength: document.querySelector('#applyLutLength'),
     lutGenerator: document.querySelector('#lutGenerator'),
     lutGeneratorHelp: document.querySelector('#lutGeneratorHelp'),
     lutSeed: document.querySelector('#lutSeed'),

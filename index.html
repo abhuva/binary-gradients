@@ -212,27 +212,16 @@
 
     <div class="tab-panel" id="lutTab">
       <section class="control-group">
-        <h2 data-wiki="lut-definition">LUT Definition</h2>
-        <label>
-          ID
-          <input id="lutId" type="text" value="custom-lut">
-        </label>
-        <label>
-          Length
-          <input id="lutLength" type="number" min="2" max="4096" step="1" value="256">
-        </label>
-        <button id="applyLutLength" type="button">Apply Length</button>
-      </section>
-
-      <section class="control-group">
         <h2 data-wiki="lut-generator">Generate LUT</h2>
-        <label>
-          Generator
-          <select id="lutGenerator"></select>
-        </label>
-        <button id="lutGeneratorHelp" class="context-help-button" type="button">?</button>
-        <label>
-          Seed
+        <div class="lut-generator-select-row">
+          <label class="lut-inline-field">
+            <span>Generator</span>
+            <select id="lutGenerator"></select>
+          </label>
+          <button id="lutGeneratorHelp" class="context-help-button" type="button">?</button>
+        </div>
+        <label class="lut-inline-field">
+          <span>Seed</span>
           <input id="lutSeed" type="number" min="0" max="999999" step="1" value="1337">
         </label>
         <label class="generator-control">
@@ -257,18 +246,38 @@
         </div>
       </section>
 
+      <section class="control-group">
+        <h2 data-wiki="lut-definition">LUT Definition</h2>
+        <label class="lut-inline-field">
+          <span>ID</span>
+          <input id="lutId" type="text" value="custom-lut">
+        </label>
+        <label class="lut-inline-field">
+          <span>Length</span>
+          <span class="lut-length-control">
+            <input id="lutLength" type="number" min="2" max="4096" step="1" value="256">
+            <span class="lut-length-presets" aria-label="LUT length presets">
+              <button type="button" data-lut-length-preset="128">128</button>
+              <button type="button" data-lut-length-preset="256">256</button>
+              <button type="button" data-lut-length-preset="512">512</button>
+              <button type="button" data-lut-length-preset="1024">1024</button>
+            </span>
+          </span>
+        </label>
+      </section>
+
       <section class="control-group point-editor" id="pointEditor">
         <h2 data-wiki="lut-editor">Selected Point</h2>
-        <label>
-          Index
+        <label class="lut-inline-field">
+          <span>Index</span>
           <input id="pointIndex" type="number" min="0" max="255" step="1" value="0">
         </label>
-        <label>
-          Color
+        <label class="lut-inline-field">
+          <span>Color</span>
           <input id="pointColor" type="color" value="#000000">
         </label>
-        <label>
-          Method
+        <label class="lut-inline-field">
+          <span>Method</span>
           <select id="pointKind">
             <option value="smooth">Smooth / interpolated</option>
             <option value="hard">Hard / exact override</option>

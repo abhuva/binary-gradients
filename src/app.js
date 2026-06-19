@@ -234,7 +234,13 @@ function wireControls() {
   controls.lutId.addEventListener('input', () => {
     currentLut.id = sanitizeLutId(controls.lutId.value);
   });
-  controls.applyLutLength.addEventListener('click', applyLutLength);
+  controls.lutLength.addEventListener('change', applyLutLength);
+  document.querySelectorAll('[data-lut-length-preset]').forEach((button) => {
+    button.addEventListener('click', () => {
+      controls.lutLength.value = button.dataset.lutLengthPreset;
+      applyLutLength();
+    });
+  });
   controls.lutGenerator.addEventListener('change', () => {
     renderGeneratorParams();
     syncGeneratorHelp();
